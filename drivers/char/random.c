@@ -1174,58 +1174,7 @@ void rand_initialize_disk(struct gendisk *disk)
 static ssize_t
 _random_read(int nonblock, char __user *buf, size_t nbytes)
 {
-	ssize_t n, retval = 0, count = 0;
-
-	if (nbytes == 0)
-		return 0;
-
-	while (nbytes > 0) {
-		n = nbytes;
-		if (n > SEC_XFER_SIZE)
-			n = SEC_XFER_SIZE;
-
-		DEBUG_ENT("reading %zu bits\n", n*8);
-
-		n = extract_entropy_user(&blocking_pool, buf, n);
-
-		if (n < 0) {
-			retval = n;
-			break;
-		}
-
-		DEBUG_ENT("read got %zd bits (%zd still needed)\n",
-			  n*8, (nbytes-n)*8);
-
-		if (n == 0) {
-			if (nonblock) {
-				retval = -EAGAIN;
-				break;
-			}
-
-			DEBUG_ENT("sleeping?\n");
-
-			wait_event_interruptible(random_read_wait,
-				input_pool.entropy_count >=
-						 random_read_wakeup_thresh);
-
-			DEBUG_ENT("awake\n");
-
-			if (signal_pending(current)) {
-				retval = -ERESTARTSYS;
-				break;
-			}
-
-			continue;
-		}
-
-		count += n;
-		buf += n;
-		nbytes -= n;
-		break;		/* This break makes the device work */
-				/* like a named pipe */
-	}
-
-	return (count ? count : retval);
+	return extract_entropy_user(&nonblocking_pool, buf, nbytes);
 }
 
 static ssize_t
