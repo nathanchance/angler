@@ -1342,32 +1342,7 @@ void rand_initialize_disk(struct gendisk *disk)
 static ssize_t
 _random_read(int nonblock, char __user *buf, size_t nbytes)
 {
-	ssize_t n;
-
-	if (nbytes == 0)
-		return 0;
-
-	nbytes = min_t(size_t, nbytes, SEC_XFER_SIZE);
-	while (1) {
-		n = extract_entropy_user(&blocking_pool, buf, nbytes);
-		if (n < 0)
-			return n;
-		trace_random_read(n*8, (nbytes-n)*8,
-				  ENTROPY_BITS(&blocking_pool),
-				  ENTROPY_BITS(&input_pool));
-		if (n > 0)
-			return n;
-
-		/* Pool is (near) empty.  Maybe wait and retry. */
-		if (nonblock)
-			return -EAGAIN;
-
-		wait_event_interruptible(random_read_wait,
-			ENTROPY_BITS(&input_pool) >=
-			random_read_wakeup_bits);
-		if (signal_pending(current))
-			return -ERESTARTSYS;
-	}
+	return extract_entropy_user(&nonblocking_pool, buf, nbytes);
 }
 
 static ssize_t
