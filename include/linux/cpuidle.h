@@ -13,8 +13,6 @@
 
 #include <linux/percpu.h>
 #include <linux/list.h>
-#include <linux/kobject.h>
-#include <linux/completion.h>
 #include <linux/hrtimer.h>
 
 #define CPUIDLE_STATE_MAX	10
@@ -70,9 +68,8 @@ struct cpuidle_device {
 	struct cpuidle_state_usage	states_usage[CPUIDLE_STATE_MAX];
 	struct cpuidle_state_kobj *kobjs[CPUIDLE_STATE_MAX];
 	struct cpuidle_driver_kobj *kobj_driver;
+	struct cpuidle_device_kobj *kobj_dev;
 	struct list_head 	device_list;
-	struct kobject		kobj;
-	struct completion	kobj_unregister;
 
 #ifdef CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED
 	int			safe_state_index;
