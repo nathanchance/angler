@@ -1066,7 +1066,7 @@ int ubi_attach_mtd_dev(struct mtd_info *mtd, int ubi_num,
 	if (err)
 		goto out_uif;
 
-	ubi->bgt_thread = kthread_create(ubi_thread, ubi, ubi->bgt_name);
+	ubi->bgt_thread = kthread_create(ubi_thread, ubi, "%s", ubi->bgt_name);
 	if (IS_ERR(ubi->bgt_thread)) {
 		err = PTR_ERR(ubi->bgt_thread);
 		ubi_err(ubi->ubi_num, "cannot spawn \"%s\", error %d",
