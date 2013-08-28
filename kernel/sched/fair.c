@@ -6581,7 +6581,7 @@ void update_group_power(struct sched_domain *sd, int cpu)
 {
 	struct sched_domain *child = sd->child;
 	struct sched_group *group, *sdg = sd->groups;
-	unsigned long power;
+	unsigned long power, power_orig;
 	unsigned long interval;
 
 	interval = msecs_to_jiffies(sd->balance_interval);
@@ -6593,7 +6593,7 @@ void update_group_power(struct sched_domain *sd, int cpu)
 		return;
 	}
 
-	power = 0;
+	power_orig = power = 0;
 
 	if (child->flags & SD_OVERLAP) {
 		/*
@@ -6601,8 +6601,12 @@ void update_group_power(struct sched_domain *sd, int cpu)
 		 * span the current group.
 		 */
 
-		for_each_cpu(cpu, sched_group_cpus(sdg))
-			power += power_of(cpu);
+		for_each_cpu(cpu, sched_group_cpus(sdg)) {
+			struct sched_group *sg = cpu_rq(cpu)->sd->groups;
+
+			power_orig += sg->sgp->power_orig;
+			power += sg->sgp->power;
+		}
 	} else  {
 		/*
 		 * !SD_OVERLAP domains can assume that child groups
@@ -6611,12 +6615,14 @@ void update_group_power(struct sched_domain *sd, int cpu)
 
 		group = child->groups;
 		do {
+			power_orig += group->sgp->power_orig;
 			power += group->sgp->power;
 			group = group->next;
 		} while (group != child->groups);
 	}
 
-	sdg->sgp->power_orig = sdg->sgp->power = power;
+	sdg->sgp->power_orig = power_orig;
+	sdg->sgp->power = power;
 }
 
 /*
