@@ -658,6 +658,7 @@ int hibernate(void)
 	if (error)
 		goto Exit;
 
+	lock_device_hotplug();
 	/* Allocate memory management structures */
 	error = create_basic_memory_bitmaps();
 	if (error)
@@ -691,6 +692,7 @@ int hibernate(void)
  Free_bitmaps:
 	free_basic_memory_bitmaps();
  Thaw:
+	unlock_device_hotplug();
 	thaw_processes();
 
 	/* Don't bother checking whether freezer_test_done is true */
@@ -820,6 +822,7 @@ static int software_resume(void)
 
 	pr_debug("PM: Loading hibernation image.\n");
 
+	lock_device_hotplug();
 	error = create_basic_memory_bitmaps();
 	if (error)
 		goto Thaw;
@@ -833,6 +836,7 @@ static int software_resume(void)
 	swsusp_free();
 	free_basic_memory_bitmaps();
  Thaw:
+	unlock_device_hotplug();
 	thaw_processes();
  Finish:
 	pm_notifier_call_chain(PM_POST_RESTORE);
