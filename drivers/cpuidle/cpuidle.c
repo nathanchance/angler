@@ -111,10 +111,7 @@ int cpuidle_idle_call(void)
 		return 0;
 	}
 
-	if (off)
-		return -ENODEV;
-
-	if (!initialized)
+	if (off || !initialized)
 		return -ENODEV;
 
 	/* check if the device is ready */
