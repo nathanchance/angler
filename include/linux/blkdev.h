@@ -164,8 +164,6 @@ struct request {
 
 	unsigned short ioprio;
 
-	int ref_count;
-
 	void *special;		/* opaque pointer available for LLD use */
 	char *buffer;		/* kaddr of the current segment if available */
 
