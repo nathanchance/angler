@@ -28,7 +28,7 @@
 #include <linux/gfp.h>
 #include <linux/oom.h>
 #include <linux/smpboot.h>
-#include "time/tick-internal.h"
+#include "../time/tick-internal.h"
 
 #define RCU_KTHREAD_PRIO 1
 
@@ -1068,7 +1068,7 @@ static void __init __rcu_init_preempt(void)
 
 #ifdef CONFIG_RCU_BOOST
 
-#include "locking/rtmutex_common.h"
+#include "../locking/rtmutex_common.h"
 
 #ifdef CONFIG_RCU_TRACE
 
