@@ -302,7 +302,7 @@ static void show_tiny_preempt_stats(struct seq_file *m)
 
 #ifdef CONFIG_RCU_BOOST
 
-#include "rtmutex_common.h"
+#include "locking/rtmutex_common.h"
 
 #define RCU_BOOST_PRIO CONFIG_RCU_BOOST_PRIO
 
