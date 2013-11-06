@@ -50,10 +50,10 @@ void context_tracking_user_enter(void)
 	/*
 	 * Repeat the user_enter() check here because some archs may be calling
 	 * this from asm and if no CPU needs context tracking, they shouldn't
-	 * go further. Repeat the check here until they support the static key
-	 * check.
+	 * go further. Repeat the check here until they support the inline static
+	 * key check.
 	 */
-	if (!static_key_false(&context_tracking_enabled))
+	if (!context_tracking_is_enabled())
 		return;
 
 	/*
@@ -143,7 +143,7 @@ void context_tracking_user_exit(void)
 {
 	unsigned long flags;
 
-	if (!static_key_false(&context_tracking_enabled))
+	if (!context_tracking_is_enabled())
 		return;
 
 	if (in_interrupt())
