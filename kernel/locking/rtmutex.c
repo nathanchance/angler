@@ -14,6 +14,7 @@
 #include <linux/export.h>
 #include <linux/sched.h>
 #include <linux/sched/rt.h>
+#include <linux/sched/deadline.h>
 #include <linux/timer.h>
 
 #include "rtmutex_common.h"
@@ -147,8 +148,17 @@ static inline int
 rt_mutex_waiter_less(struct rt_mutex_waiter *left,
 		     struct rt_mutex_waiter *right)
 {
-	if (left->task->prio < right->task->prio)
+	if (left->prio < right->prio)
 		return 1;
+
+	/*
+	 * If both waiters have dl_prio(), we check the deadlines of the
+	 * associated tasks.
+	 * If left waiter has a dl_prio(), and we didn't return 1 above,
+	 * then right waiter has a dl_prio() too.
+	 */
+	if (dl_prio(left->prio))
+		return (left->task->dl.deadline < right->task->dl.deadline);
 
 	return 0;
 }
@@ -242,7 +252,7 @@ int rt_mutex_getprio(struct task_struct *task)
 	if (likely(!task_has_pi_waiters(task)))
 		return task->normal_prio;
 
-	return min(task_top_pi_waiter(task)->task->prio,
+	return min(task_top_pi_waiter(task)->prio,
 		   task->normal_prio);
 }
 
@@ -263,7 +273,7 @@ static void __rt_mutex_adjust_prio(struct task_struct *task)
 {
 	int prio = rt_mutex_getprio(task);
 
-	if (task->prio != prio)
+	if (task->prio != prio || dl_prio(prio))
 		rt_mutex_setprio(task, prio);
 }
 
@@ -507,7 +517,7 @@ static int rt_mutex_adjust_prio_chain(struct task_struct *task,
 	 * walk.
 	 */
 	if (waiter->task->prio == task->prio) {
-		if (!detect_deadlock)
+		if (!detect_deadlock && waiter->prio == task->prio)
 			goto out_unlock_pi;
 		else
 			requeue = false;
@@ -602,7 +612,7 @@ static int rt_mutex_adjust_prio_chain(struct task_struct *task,
 
 	/* [7] Requeue the waiter in the lock waiter list. */
 	rt_mutex_dequeue(lock, waiter);
-	waiter->task->prio = task->prio;
+	waiter->prio = task->prio;
 	rt_mutex_enqueue(lock, waiter);
 
 	/* [8] Release the task */
@@ -875,6 +885,7 @@ static int task_blocks_on_rt_mutex(struct rt_mutex *lock,
 	__rt_mutex_adjust_prio(task);
 	waiter->task = task;
 	waiter->lock = lock;
+	waiter->prio = task->prio;
 
 	/* Get the top priority waiter on the lock */
 	if (rt_mutex_has_waiters(lock))
@@ -1046,7 +1057,8 @@ void rt_mutex_adjust_pi(struct task_struct *task)
 	raw_spin_lock_irqsave(&task->pi_lock, flags);
 
 	waiter = task->pi_blocked_on;
-	if (!waiter || (waiter->task->prio == task->prio)) {
+	if (!waiter || (waiter->prio == task->prio &&
+			!dl_prio(task->prio))) {
 		raw_spin_unlock_irqrestore(&task->pi_lock, flags);
 		return;
 	}
