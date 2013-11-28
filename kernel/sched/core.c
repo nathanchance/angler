@@ -1053,7 +1053,9 @@ static inline int normal_prio(struct task_struct *p)
 {
 	int prio;
 
-	if (task_has_rt_policy(p))
+	if (task_has_dl_policy(p))
+		prio = MAX_DL_PRIO-1;
+	else if (task_has_rt_policy(p))
 		prio = MAX_RT_PRIO-1 - p->rt_priority;
 	else
 		prio = __normal_prio(p);
@@ -3587,6 +3589,12 @@ static void __sched_fork(struct task_struct *p)
 	memset(&p->se.statistics, 0, sizeof(p->se.statistics));
 #endif
 
+	RB_CLEAR_NODE(&p->dl.rb_node);
+	hrtimer_init(&p->dl.dl_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+	p->dl.dl_runtime = p->dl.runtime = 0;
+	p->dl.dl_deadline = p->dl.deadline = 0;
+	p->dl.flags = 0;
+
 	INIT_LIST_HEAD(&p->rt.run_list);
 
 #ifdef CONFIG_PREEMPT_NOTIFIERS
@@ -3630,7 +3638,7 @@ void set_numabalancing_state(bool enabled)
 /*
  * fork()/clone()-time setup:
  */
-void sched_fork(struct task_struct *p)
+int sched_fork(struct task_struct *p)
 {
 	unsigned long flags;
 	int cpu = get_cpu();
@@ -3652,7 +3660,7 @@ void sched_fork(struct task_struct *p)
 	 * Revert to default priority/policy on fork if requested.
 	 */
 	if (unlikely(p->sched_reset_on_fork)) {
-		if (task_has_rt_policy(p)) {
+		if (task_has_dl_policy(p) || task_has_rt_policy(p)) {
 			p->policy = SCHED_NORMAL;
 			p->static_prio = NICE_TO_PRIO(0);
 			p->rt_priority = 0;
@@ -3669,8 +3677,14 @@ void sched_fork(struct task_struct *p)
 		p->sched_reset_on_fork = 0;
 	}
 
-	if (!rt_prio(p->prio))
+	if (dl_prio(p->prio)) {
+		put_cpu();
+		return -EAGAIN;
+	} else if (rt_prio(p->prio)) {
+		p->sched_class = &rt_sched_class;
+	} else {
 		p->sched_class = &fair_sched_class;
+	}
 
 	if (p->sched_class->task_fork)
 		p->sched_class->task_fork(p);
@@ -3702,6 +3716,7 @@ void sched_fork(struct task_struct *p)
 #endif
 
 	put_cpu();
+	return 0;
 }
 
 /*
@@ -5586,7 +5601,7 @@ void rt_mutex_setprio(struct task_struct *p, int prio)
 	struct rq *rq;
 	const struct sched_class *prev_class;
 
-	BUG_ON(prio < 0 || prio > MAX_PRIO);
+	BUG_ON(prio > MAX_PRIO);
 
 	rq = __task_rq_lock(p);
 
@@ -5618,7 +5633,9 @@ void rt_mutex_setprio(struct task_struct *p, int prio)
 	if (running)
 		p->sched_class->put_prev_task(rq, p);
 
-	if (rt_prio(prio)) {
+	if (dl_prio(prio)) {
+		p->sched_class = &dl_sched_class;
+	} else if (rt_prio(prio)) {
 		p->sched_class = &rt_sched_class;
 	} else {
 		if (rt_prio(oldprio))
@@ -5660,9 +5677,9 @@ void set_user_nice(struct task_struct *p, long nice)
 	 * The RT priorities are set via sched_setscheduler(), but we still
 	 * allow the 'normal' nice value to be set - but as expected
 	 * it wont have any effect on scheduling until the task is
-	 * SCHED_FIFO/SCHED_RR:
+	 * SCHED_DEADLINE, SCHED_FIFO or SCHED_RR:
 	 */
-	if (task_has_rt_policy(p)) {
+	if (task_has_dl_policy(p) || task_has_rt_policy(p)) {
 		p->static_prio = NICE_TO_PRIO(nice);
 		goto out_unlock;
 	}
@@ -5809,6 +5826,27 @@ static struct task_struct *find_process_by_pid(pid_t pid)
 	return pid ? find_task_by_vpid(pid) : current;
 }
 
+/*
+ * This function initializes the sched_dl_entity of a newly becoming
+ * SCHED_DEADLINE task.
+ *
+ * Only the static values are considered here, the actual runtime and the
+ * absolute deadline will be properly calculated when the task is enqueued
+ * for the first time with its new policy.
+ */
+static void
+__setparam_dl(struct task_struct *p, const struct sched_attr *attr)
+{
+	struct sched_dl_entity *dl_se = &p->dl;
+
+	init_dl_task_timer(dl_se);
+	dl_se->dl_runtime = attr->sched_runtime;
+	dl_se->dl_deadline = attr->sched_deadline;
+	dl_se->flags = attr->sched_flags;
+	dl_se->dl_throttled = 0;
+	dl_se->dl_new = 1;
+}
+
 /* Actually do priority change: must hold pi & rq lock. */
 static void __setscheduler(struct rq *rq, struct task_struct *p,
 			   const struct sched_attr *attr)
@@ -5822,7 +5860,11 @@ static void __setscheduler(struct rq *rq, struct task_struct *p,
 
 	p->policy = policy;
 
-	if (fair_policy(policy))
+	if (dl_policy(policy))
+		__setparam_dl(p, attr);
+	else if (rt_policy(policy))
+		p->rt_priority = attr->sched_priority;
+	else
 		p->static_prio = NICE_TO_PRIO(attr->sched_nice);
 
 	/*
@@ -5835,13 +5877,39 @@ static void __setscheduler(struct rq *rq, struct task_struct *p,
 	p->normal_prio = normal_prio(p);
 	p->prio = rt_mutex_getprio(p);
 
-	if (rt_prio(p->prio))
+	if (dl_prio(p->prio))
+		p->sched_class = &dl_sched_class;
+	else if (rt_prio(p->prio))
 		p->sched_class = &rt_sched_class;
 	else
 		p->sched_class = &fair_sched_class;
 
 	set_load_weight(p);
 }
+
+static void
+__getparam_dl(struct task_struct *p, struct sched_attr *attr)
+{
+	struct sched_dl_entity *dl_se = &p->dl;
+
+	attr->sched_priority = p->rt_priority;
+	attr->sched_runtime = dl_se->dl_runtime;
+	attr->sched_deadline = dl_se->dl_deadline;
+	attr->sched_flags = dl_se->flags;
+}
+
+/*
+ * This function validates the new parameters of a -deadline task.
+ * We ask for the deadline not being zero, and greater or equal
+ * than the runtime.
+ */
+static bool
+__checkparam_dl(const struct sched_attr *attr)
+{
+	return attr && attr->sched_deadline != 0 &&
+	       (s64)(attr->sched_deadline - attr->sched_runtime) >= 0;
+}
+
 /*
  * check the target process has a UID that matches the current process's
  */
@@ -5880,7 +5948,8 @@ recheck:
 		reset_on_fork = !!(policy & SCHED_RESET_ON_FORK);
 		policy &= ~SCHED_RESET_ON_FORK;
 
-		if (policy != SCHED_FIFO && policy != SCHED_RR &&
+		if (policy != SCHED_DEADLINE &&
+				policy != SCHED_FIFO && policy != SCHED_RR &&
 				policy != SCHED_NORMAL && policy != SCHED_BATCH &&
 				policy != SCHED_IDLE)
 			return -EINVAL;
@@ -5894,7 +5963,8 @@ recheck:
 	if ((p->mm && attr->sched_priority > MAX_USER_RT_PRIO-1) ||
 	    (!p->mm && attr->sched_priority > MAX_RT_PRIO-1))
 		return -EINVAL;
-	if (rt_policy(policy) != (attr->sched_priority != 0))
+	if ((dl_policy(policy) && !__checkparam_dl(attr)) ||
+	    (rt_policy(policy) != (attr->sched_priority != 0)))
 		return -EINVAL;
 
 	/*
@@ -5969,6 +6039,8 @@ recheck:
 		if (fair_policy(policy) && attr->sched_nice != TASK_NICE(p))
 			goto change;
 		if (rt_policy(policy) && attr->sched_priority != p->rt_priority)
+			goto change;
+		if (dl_policy(policy))
 			goto change;
 
 		task_rq_unlock(rq, p, &flags);
@@ -6282,6 +6354,10 @@ SYSCALL_DEFINE2(sched_getparam, pid_t, pid, struct sched_param __user *, param)
 	if (retval)
 		goto out_unlock;
 
+	if (task_has_dl_policy(p)) {
+		retval = -EINVAL;
+		goto out_unlock;
+	}
 	lp.sched_priority = p->rt_priority;
 	rcu_read_unlock();
 
@@ -6334,7 +6410,7 @@ static int sched_read_attr(struct sched_attr __user *uattr,
 }
 
 /**
- * sys_sched_getattr - same as above, but with extended "sched_param"
+ * sys_sched_getattr - similar to sched_getparam, but with sched_attr
  * @pid: the pid in question.
  * @attr: structure containing the extended parameters.
  * @size: sizeof(attr) for fwd/bwd comp.
@@ -6363,7 +6439,9 @@ SYSCALL_DEFINE4(sched_getattr, pid_t, pid, struct sched_attr __user *, uattr,
 		goto out_unlock;
 
 	attr.sched_policy = p->policy;
-	if (task_has_rt_policy(p))
+	if (task_has_dl_policy(p))
+		__getparam_dl(p, &attr);
+	else if (task_has_rt_policy(p))
 		attr.sched_priority = p->rt_priority;
 	else
 		attr.sched_nice = TASK_NICE(p);
@@ -6788,6 +6866,7 @@ SYSCALL_DEFINE1(sched_get_priority_max, int, policy)
 	case SCHED_RR:
 		ret = MAX_USER_RT_PRIO-1;
 		break;
+	case SCHED_DEADLINE:
 	case SCHED_NORMAL:
 	case SCHED_BATCH:
 	case SCHED_IDLE:
@@ -6813,6 +6892,7 @@ SYSCALL_DEFINE1(sched_get_priority_min, int, policy)
 	case SCHED_RR:
 		ret = 1;
 		break;
+	case SCHED_DEADLINE:
 	case SCHED_NORMAL:
 	case SCHED_BATCH:
 	case SCHED_IDLE:
@@ -9273,6 +9353,7 @@ void __init sched_init(void)
 		rq->calc_load_update = jiffies + LOAD_FREQ;
 		init_cfs_rq(&rq->cfs);
 		init_rt_rq(&rq->rt, rq);
+		init_dl_rq(&rq->dl, rq);
 #ifdef CONFIG_FAIR_GROUP_SCHED
 		root_task_group.shares = ROOT_TASK_GROUP_LOAD;
 		INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);
@@ -9499,7 +9580,7 @@ void normalize_rt_tasks(void)
 		p->se.statistics.block_start	= 0;
 #endif
 
-		if (!rt_task(p)) {
+		if (!dl_task(p) && !rt_task(p)) {
 			/*
 			 * Renice negative nice level userspace
 			 * tasks back to 0:
