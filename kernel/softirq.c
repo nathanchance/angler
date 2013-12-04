@@ -317,7 +317,7 @@ void irq_enter(void)
 		 * here, as softirq will be serviced on return from interrupt.
 		 */
 		local_bh_disable();
-		tick_check_idle();
+		tick_irq_enter();
 		_local_bh_enable();
 	}
 
