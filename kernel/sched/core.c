@@ -5916,8 +5916,7 @@ recheck:
 	 * 1..MAX_USER_RT_PRIO-1, valid priority for SCHED_NORMAL,
 	 * SCHED_BATCH and SCHED_IDLE is 0.
 	 */
-	if (attr->sched_priority < 0 ||
-	    (p->mm && attr->sched_priority > MAX_USER_RT_PRIO-1) ||
+	if ((p->mm && attr->sched_priority > MAX_USER_RT_PRIO-1) ||
 	    (!p->mm && attr->sched_priority > MAX_RT_PRIO-1))
 		return -EINVAL;
 	if (rt_policy(policy) != (attr->sched_priority != 0))
