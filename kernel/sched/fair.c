@@ -7705,7 +7705,7 @@ out:
  * idle_balance is called by schedule() if this_cpu is about to become
  * idle. Attempts to pull tasks from other CPUs.
  */
-void idle_balance(int this_cpu, struct rq *this_rq)
+void idle_balance(struct rq *this_rq)
 {
 	struct sched_domain *sd;
 	int pulled_task = 0;
@@ -7714,6 +7714,7 @@ void idle_balance(int this_cpu, struct rq *this_rq)
 	int min_power = INT_MAX;
 	int balance_cpu = -1;
 	struct rq *balance_rq = NULL;
+	int this_cpu = this_rq->cpu;
 
 	this_rq->idle_stamp = this_rq->clock;
 
