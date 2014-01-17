@@ -5294,7 +5294,7 @@ static void __sched __schedule(void)
 	pre_schedule(rq, prev);
 
 	if (unlikely(!rq->nr_running))
-		idle_balance(cpu, rq);
+		idle_balance(rq);
 
         if (prev->on_rq || rq->skip_clock_update < 0)
                 update_rq_clock(rq);
