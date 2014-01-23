@@ -179,6 +179,7 @@ bool arch_kexec_is_hardboot_buffer_range(unsigned long start,
 
 extern struct kimage *kexec_image;
 extern struct kimage *kexec_crash_image;
+extern int kexec_load_disabled;
 
 #ifndef kexec_flush_icache_page
 #define kexec_flush_icache_page(page)
