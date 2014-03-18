@@ -697,7 +697,7 @@ static int _get_nohz_timer_target_hmp(void)
  * selecting an idle cpu will add more delays to the timers than intended
  * (as that cpu's timer base may not be uptodate wrt jiffies etc).
  */
-int get_nohz_timer_target(void)
+int get_nohz_timer_target(int pinned)
 {
 	int cpu = smp_processor_id();
 	int i, lower_power_cpu;
@@ -709,7 +709,7 @@ int get_nohz_timer_target(void)
 			return lower_power_cpu;
 	}
 
-	if (!idle_cpu(cpu))
+	if (pinned || !get_sysctl_timer_migration() || !idle_cpu(cpu))
 		return cpu;
 
 	rcu_read_lock();
