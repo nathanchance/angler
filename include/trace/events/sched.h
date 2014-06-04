@@ -948,6 +948,25 @@ TRACE_EVENT(sched_get_nr_running_avg,
 		__entry->avg, __entry->big_avg, __entry->iowait_avg)
 );
 
+/*
+ * Tracepoint for waking a polling cpu without an IPI.
+ */
+TRACE_EVENT(sched_wake_idle_without_ipi,
+
+	TP_PROTO(int cpu),
+
+	TP_ARGS(cpu),
+
+	TP_STRUCT__entry(
+		__field(	int,	cpu	)
+	),
+
+	TP_fast_assign(
+		__entry->cpu	= cpu;
+	),
+
+	TP_printk("cpu=%d", __entry->cpu)
+);
 #endif /* _TRACE_SCHED_H */
 
 /* This part must be outside protection */
