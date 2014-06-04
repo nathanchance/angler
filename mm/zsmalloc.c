@@ -54,7 +54,6 @@
 #include <linux/bitops.h>
 #include <linux/errno.h>
 #include <linux/highmem.h>
-#include <linux/init.h>
 #include <linux/string.h>
 #include <linux/slab.h>
 #include <asm/tlbflush.h>
