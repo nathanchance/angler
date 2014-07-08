@@ -700,7 +700,7 @@ void rcu_nmi_exit(void)
  */
 int rcu_is_cpu_idle(void)
 {
-	int ret;
+	bool ret;
 
 	preempt_disable();
 	ret = (atomic_read(&__get_cpu_var(rcu_dynticks).dynticks) & 0x1) == 0;
