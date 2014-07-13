@@ -3103,7 +3103,7 @@ static int rcu_cpu_notify(struct notifier_block *self,
 }
 
 /*
- * Spawn the kthread that handles this RCU flavor's grace periods.
+ * Spawn the kthreads that handle each RCU flavor's grace periods.
  */
 static int __init rcu_spawn_gp_kthread(void)
 {
@@ -3112,6 +3112,7 @@ static int __init rcu_spawn_gp_kthread(void)
 	struct rcu_state *rsp;
 	struct task_struct *t;
 
+	rcu_scheduler_fully_active = 1;
 	for_each_rcu_flavor(rsp) {
 		t = kthread_run(rcu_gp_kthread, rsp, rsp->name);
 		BUG_ON(IS_ERR(t));
@@ -3121,6 +3122,7 @@ static int __init rcu_spawn_gp_kthread(void)
 		raw_spin_unlock_irqrestore(&rnp->lock, flags);
 		rcu_spawn_nocb_kthreads(rsp);
 	}
+	rcu_spawn_boost_kthreads();
 	return 0;
 }
 early_initcall(rcu_spawn_gp_kthread);
