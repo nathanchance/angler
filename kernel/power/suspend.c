@@ -338,7 +338,7 @@ int suspend_devices_and_enter(suspend_state_t state)
 		error = suspend_ops->begin(state);
 		if (error)
 			goto Close;
-	} else if (state == PM_SUSPEND_FREEZE && freeze_ops->begin) {
+	} else if (state == PM_SUSPEND_FREEZE && freeze_ops && freeze_ops->begin) {
 		error = freeze_ops->begin();
 		if (error)
 			goto Close;
@@ -368,7 +368,7 @@ int suspend_devices_and_enter(suspend_state_t state)
  Close:
 	if (need_suspend_ops(state) && suspend_ops->end)
 		suspend_ops->end();
-	else if (state == PM_SUSPEND_FREEZE && freeze_ops->end)
+	else if (state == PM_SUSPEND_FREEZE && freeze_ops && freeze_ops->end)
 		freeze_ops->end();
 
 	trace_machine_suspend(PWR_EVENT_EXIT);
