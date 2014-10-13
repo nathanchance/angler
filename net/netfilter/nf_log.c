@@ -24,7 +24,7 @@ static struct nf_logger *__find_logger(int pf, const char *str_logger)
 	struct nf_logger *t;
 
 	list_for_each_entry(t, &nf_loggers_l[pf], list[pf]) {
-		if (!strnicmp(str_logger, t->name, strlen(t->name)))
+		if (!strncasecmp(str_logger, t->name, strlen(t->name)))
 			return t;
 	}
 
