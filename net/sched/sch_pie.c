@@ -434,7 +434,6 @@ static int pie_init(struct Qdisc *sch, struct nlattr *opt)
 	sch->limit = q->params.limit;
 
 	setup_timer(&q->adapt_timer, pie_timer, (unsigned long)sch);
-	mod_timer(&q->adapt_timer, jiffies + HZ / 2);
 
 	if (opt) {
 		int err = pie_change(sch, opt);
@@ -443,6 +442,7 @@ static int pie_init(struct Qdisc *sch, struct nlattr *opt)
 			return err;
 	}
 
+	mod_timer(&q->adapt_timer, jiffies + HZ / 2);
 	return 0;
 }
 
