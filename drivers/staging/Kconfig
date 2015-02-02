@@ -138,4 +138,6 @@ source "drivers/staging/dwc2/Kconfig"
 
 source "drivers/staging/nanohub/Kconfig"
 
+source "drivers/staging/vnswap/Kconfig"
+
 endif # STAGING
