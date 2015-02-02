@@ -749,7 +749,7 @@ lookup_pi_state(u32 uval, struct futex_hash_bucket *hb,
 	if (!p)
 		return -ESRCH;
 
-	if (!p->mm) {
+	if (unlikely(p->flags & PF_KTHREAD)) {
 		put_task_struct(p);
 		return -EPERM;
 	}
