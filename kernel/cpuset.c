@@ -1674,7 +1674,7 @@ static size_t cpuset_sprintf_cpulist(char *page, struct cpuset *cs)
 	size_t count;
 
 	mutex_lock(&callback_mutex);
-	count = cpulist_scnprintf(page, PAGE_SIZE, cs->cpus_requested);
+	count = scnprintf(page, PAGE_SIZE, "%*pbl", cpumask_pr_args(cs->cpus_requested));
 	mutex_unlock(&callback_mutex);
 
 	return count;
@@ -1685,7 +1685,7 @@ static size_t cpuset_sprintf_memlist(char *page, struct cpuset *cs)
 	size_t count;
 
 	mutex_lock(&callback_mutex);
-	count = nodelist_scnprintf(page, PAGE_SIZE, cs->mems_allowed);
+	count = scnprintf(page, PAGE_SIZE, "%*pbl", nodemask_pr_args(&cs->mems_allowed));
 	mutex_unlock(&callback_mutex);
 
 	return count;
@@ -2605,8 +2605,8 @@ void cpuset_print_task_mems_allowed(struct task_struct *tsk)
 	rcu_read_lock();
 	spin_lock(&cpuset_buffer_lock);
 
-	nodelist_scnprintf(cpuset_nodelist, CPUSET_NODELIST_LEN,
-			   tsk->mems_allowed);
+	scnprintf(cpuset_nodelist, CPUSET_NODELIST_LEN, "%*pbl",
+			   nodemask_pr_args(&tsk->mems_allowed));
 	printk(KERN_INFO "%s cpuset=%s mems_allowed=%s\n",
 	       tsk->comm, cgroup_name(cgrp), cpuset_nodelist);
 
@@ -2696,10 +2696,8 @@ out:
 /* Display task mems_allowed in /proc/<pid>/status file. */
 void cpuset_task_status_allowed(struct seq_file *m, struct task_struct *task)
 {
-	seq_printf(m, "Mems_allowed:\t");
-	seq_nodemask(m, &task->mems_allowed);
-	seq_printf(m, "\n");
-	seq_printf(m, "Mems_allowed_list:\t");
-	seq_nodemask_list(m, &task->mems_allowed);
-	seq_printf(m, "\n");
+	seq_printf(m, "Mems_allowed:\t%*pb\n",
+		   nodemask_pr_args(&task->mems_allowed));
+	seq_printf(m, "Mems_allowed_list:\t%*pbl\n",
+		   nodemask_pr_args(&task->mems_allowed));
 }
