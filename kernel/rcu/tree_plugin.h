@@ -54,7 +54,6 @@ DEFINE_PER_CPU(char, rcu_cpu_has_work);
 static cpumask_var_t rcu_nocb_mask; /* CPUs to have callbacks offloaded. */
 static bool have_rcu_nocb_mask;	    /* Was rcu_nocb_mask allocated? */
 static bool __read_mostly rcu_nocb_poll;    /* Offload kthread are to poll. */
-static char __initdata nocb_buf[NR_CPUS * 5];
 #endif /* #ifdef CONFIG_RCU_NOCB_CPU */
 
 /*
@@ -113,8 +112,8 @@ static void __init rcu_bootup_announce_oddness(void)
 #endif /* #ifdef CONFIG_RCU_NOCB_CPU_ALL */
 #endif /* #ifndef CONFIG_RCU_NOCB_CPU_NONE */
 	if (have_rcu_nocb_mask) {
-		cpulist_scnprintf(nocb_buf, sizeof(nocb_buf), rcu_nocb_mask);
-		pr_info("\tExperimental no-CBs CPUs: %s.\n", nocb_buf);
+		pr_info("\tExperimental no-CBs CPUs: %*pbl.\n",
+			cpumask_pr_args(rcu_nocb_mask));
 		if (rcu_nocb_poll)
 			pr_info("\tExperimental polled no-CBs CPUs.\n");
 	}
