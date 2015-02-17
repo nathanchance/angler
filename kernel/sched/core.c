@@ -341,7 +341,8 @@ const_debug int sysctl_sched_yield_sleep_threshold = 4;
  */
 const_debug unsigned int sysctl_sched_yield_sleep_duration = 50;
 
-/* this_rq_lock - lock this runqueue and disable interrupts.
+/*
+ * this_rq_lock - lock this runqueue and disable interrupts.
  */
 static struct rq *this_rq_lock(void)
 	__acquires(rq->lock)
