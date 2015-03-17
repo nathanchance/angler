@@ -10393,7 +10393,7 @@ static int sched_rt_global_constraints(void)
 }
 #endif /* CONFIG_RT_GROUP_SCHED */
 
-static int sched_dl_global_constraints(void)
+static int sched_dl_global_validate(void)
 {
 	u64 runtime = global_rt_runtime();
 	u64 period = global_rt_period();
@@ -10491,11 +10491,11 @@ int sched_rt_handler(struct ctl_table *table, int write,
 		if (ret)
 			goto undo;
 
-		ret = sched_rt_global_constraints();
+		ret = sched_dl_global_validate();
 		if (ret)
 			goto undo;
 
-		ret = sched_dl_global_constraints();
+		ret = sched_rt_global_constraints();
 		if (ret)
 			goto undo;
 
