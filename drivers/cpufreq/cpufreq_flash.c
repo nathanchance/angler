@@ -941,7 +941,7 @@ static ssize_t store_hispeed_freq(struct cpufreq_flash_tunables *tunables,
 	int ret;
 	long unsigned int val;
 
-	ret = strict_strtoul(buf, 0, &val);
+	ret = kstrtoul(buf, 0, &val);
 	if (ret < 0)
 		return ret;
 	tunables->hispeed_freq = val;
@@ -984,7 +984,7 @@ static ssize_t store_go_hispeed_load(struct cpufreq_flash_tunables
 	int ret;
 	unsigned long val;
 
-	ret = strict_strtoul(buf, 0, &val);
+	ret = kstrtoul(buf, 0, &val);
 	if (ret < 0)
 		return ret;
 	tunables->go_hispeed_load = val;
@@ -1003,7 +1003,7 @@ static ssize_t store_min_sample_time(struct cpufreq_flash_tunables
 	int ret;
 	unsigned long val;
 
-	ret = strict_strtoul(buf, 0, &val);
+	ret = kstrtoul(buf, 0, &val);
 	if (ret < 0)
 		return ret;
 	tunables->min_sample_time = val;
@@ -1024,7 +1024,7 @@ static ssize_t store_timer_rate(struct cpufreq_flash_tunables *tunables,
 	struct cpufreq_flash_tunables *t;
 	int cpu;
 
-	ret = strict_strtoul(buf, 0, &val);
+	ret = kstrtoul(buf, 0, &val);
 	if (ret < 0)
 		return ret;
 
