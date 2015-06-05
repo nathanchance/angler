@@ -251,6 +251,9 @@ struct hmp_sched_stats {
 	u64 cumulative_runnable_avg;
 };
 
+extern bool have_sched_same_pwr_cost_cpus;
+extern cpumask_var_t sched_same_pwr_cost_cpus;
+
 #endif
 
 /* CFS-related fields in a runqueue */
