@@ -567,7 +567,7 @@ void init_dl_task_timer(struct sched_dl_entity *dl_se)
 }
 
 static
-int dl_runtime_exceeded(struct rq *rq, struct sched_dl_entity *dl_se)
+int dl_runtime_exceeded(struct sched_dl_entity *dl_se)
 {
 	return (dl_se->runtime <= 0);
 }
@@ -609,7 +609,7 @@ static void update_curr_dl(struct rq *rq)
 	cpuacct_charge(curr, delta_exec);
 
 	dl_se->runtime -= delta_exec;
-	if (dl_runtime_exceeded(rq, dl_se)) {
+	if (dl_runtime_exceeded(dl_se)) {
 		__dequeue_task_dl(rq, curr, 0);
 		if (likely(start_dl_timer(dl_se, curr->dl.dl_boosted)))
 			dl_se->dl_throttled = 1;
