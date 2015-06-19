@@ -84,6 +84,7 @@ void nf_unregister_hook(struct nf_hook_ops *reg)
 	mutex_unlock(&nf_hook_mutex);
 
 	synchronize_net();
+	nf_queue_nf_hook_drop(reg);
 }
 EXPORT_SYMBOL(nf_unregister_hook);
 
