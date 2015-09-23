@@ -1096,20 +1096,9 @@ static int ext4_es_shrink(struct shrinker *shrink, struct shrink_control *sc)
 		return ext4_es_count(shrink, sc);
 }
 
-static void *ext4_es_seq_shrinker_info_start(struct seq_file *seq, loff_t *pos)
+int ext4_seq_es_shrinker_info_show(struct seq_file *seq, void *v)
 {
-	return *pos ? NULL : SEQ_START_TOKEN;
-}
-
-static void *
-ext4_es_seq_shrinker_info_next(struct seq_file *seq, void *v, loff_t *pos)
-{
-	return NULL;
-}
-
-static int ext4_es_seq_shrinker_info_show(struct seq_file *seq, void *v)
-{
-	struct ext4_sb_info *sbi = seq->private;
+	struct ext4_sb_info *sbi = EXT4_SB((struct super_block *) seq->private);
 	struct ext4_es_stats *es_stats = &sbi->s_es_stats;
 	struct ext4_inode_info *ei, *max = NULL;
 	unsigned int inode_cnt = 0;
@@ -1154,45 +1143,6 @@ static int ext4_es_seq_shrinker_info_show(struct seq_file *seq, void *v)
 	return 0;
 }
 
-static void ext4_es_seq_shrinker_info_stop(struct seq_file *seq, void *v)
-{
-}
-
-static const struct seq_operations ext4_es_seq_shrinker_info_ops = {
-	.start = ext4_es_seq_shrinker_info_start,
-	.next  = ext4_es_seq_shrinker_info_next,
-	.stop  = ext4_es_seq_shrinker_info_stop,
-	.show  = ext4_es_seq_shrinker_info_show,
-};
-
-static int
-ext4_es_seq_shrinker_info_open(struct inode *inode, struct file *file)
-{
-	int ret;
-
-	ret = seq_open(file, &ext4_es_seq_shrinker_info_ops);
-	if (!ret) {
-		struct seq_file *m = file->private_data;
-		m->private = PDE_DATA(inode);
-	}
-
-	return ret;
-}
-
-static int
-ext4_es_seq_shrinker_info_release(struct inode *inode, struct file *file)
-{
-	return seq_release(inode, file);
-}
-
-static const struct file_operations ext4_es_seq_shrinker_info_fops = {
-	.owner		= THIS_MODULE,
-	.open		= ext4_es_seq_shrinker_info_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= ext4_es_seq_shrinker_info_release,
-};
-
 int ext4_es_register_shrinker(struct ext4_sb_info *sbi)
 {
 	int err;
@@ -1216,10 +1166,6 @@ int ext4_es_register_shrinker(struct ext4_sb_info *sbi)
 	sbi->s_es_shrinker.seeks = DEFAULT_SEEKS;
 	register_shrinker(&sbi->s_es_shrinker);
 
-	if (sbi->s_proc)
-		proc_create_data("es_shrinker_info", S_IRUGO, sbi->s_proc,
-				 &ext4_es_seq_shrinker_info_fops, sbi);
-
 	return 0;
 
 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_lru_cnt);
@@ -1230,8 +1176,6 @@ err1:
 
 void ext4_es_unregister_shrinker(struct ext4_sb_info *sbi)
 {
-	if (sbi->s_proc)
-		remove_proc_entry("es_shrinker_info", sbi->s_proc);
 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_all_cnt);
 	percpu_counter_destroy(&sbi->s_es_stats.es_stats_lru_cnt);
 	unregister_shrinker(&sbi->s_es_shrinker);
