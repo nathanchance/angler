@@ -154,4 +154,6 @@ extern void ext4_es_unregister_shrinker(struct ext4_sb_info *sbi);
 extern void ext4_es_lru_add(struct inode *inode);
 extern void ext4_es_lru_del(struct inode *inode);
 
+extern int ext4_seq_es_shrinker_info_show(struct seq_file *seq, void *v);
+
 #endif /* _EXT4_EXTENTS_STATUS_H */
