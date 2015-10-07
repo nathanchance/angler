@@ -330,6 +330,7 @@ static void cpufreq_allstats_free(void)
 		kfree(all_stat);
 		per_cpu(all_cpufreq_stats, cpu) = NULL;
 	}
+
 	if (all_freq_table) {
 		kfree(all_freq_table->freq_table);
 		kfree(all_freq_table);
