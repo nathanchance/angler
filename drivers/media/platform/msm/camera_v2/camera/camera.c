@@ -675,7 +675,7 @@ static int camera_v4l2_close(struct file *filep)
 		msm_post_event(&event, MSM_POST_EVT_TIMEOUT);
 
 		msm_delete_command_ack_q(pvdev->vdev->num, 0);
-
+		msm_delete_stream(pvdev->vdev->num, sp->stream_id);
 		/* This should take care of both normal close
 		 * and application crashes */
 		msm_destroy_session(pvdev->vdev->num);
