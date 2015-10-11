@@ -18,7 +18,8 @@
 
 #define pr_fmt(fmt) "ashmem: " fmt
 
-#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/export.h>
 #include <linux/file.h>
 #include <linux/fs.h>
 #include <linux/falloc.h>
@@ -962,24 +963,4 @@ out_free1:
 out:
 	return ret;
 }
-
-static void __exit ashmem_exit(void)
-{
-	int ret;
-
-	unregister_shrinker(&ashmem_shrinker);
-
-	ret = misc_deregister(&ashmem_misc);
-	if (unlikely(ret))
-		pr_err("failed to unregister misc device!\n");
-
-	kmem_cache_destroy(ashmem_range_cachep);
-	kmem_cache_destroy(ashmem_area_cachep);
-
-	pr_info("unloaded\n");
-}
-
-module_init(ashmem_init);
-module_exit(ashmem_exit);
-
-MODULE_LICENSE("GPL");
+device_initcall(ashmem_init);
