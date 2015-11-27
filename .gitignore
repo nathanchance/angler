@@ -62,6 +62,8 @@ modules.builtin
 include/config
 include/generated
 arch/*/include/generated
+firmware/synaptics/startup_fw_update-fhd.img
+firmware/synaptics/startup_fw_update.img
 
 # stgit generated dirs
 patches-*
