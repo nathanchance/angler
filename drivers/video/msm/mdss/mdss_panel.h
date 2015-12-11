@@ -224,6 +224,7 @@ enum mdss_intf_events {
 	MDSS_EVENT_DSI_RESET_WRITE_PTR,
 	MDSS_EVENT_PANEL_UPDATE_DSI_TIMING,
 	MDSS_EVENT_ENABLE_HBM,
+	MDSS_EVENT_DSI_PANEL_COLOR_TEMP,
 };
 
 struct lcd_panel_info {
@@ -464,6 +465,7 @@ struct mdss_panel_info {
 
 	bool hbm_feature_enabled;
 	bool hbm_state;
+	int color_temp;
 };
 
 struct mdss_panel_data {
@@ -498,6 +500,13 @@ struct mdss_panel_debugfs_info {
 	u32 override_flag;
 	char frame_rate;
 	struct mdss_panel_debugfs_info *next;
+};
+
+
+/* color temperature */
+enum {
+	PANEL_COLORTEMP_DEFAULT = 0,
+	PANEL_COLORTEMP_BLUISH,
 };
 
 /**
