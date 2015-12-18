@@ -341,17 +341,7 @@ const_debug int sysctl_sched_yield_sleep_threshold = 4;
  */
 const_debug unsigned int sysctl_sched_yield_sleep_duration = 50;
 
-/*
- * Maximum bandwidth available for all -deadline tasks and groups
- * (if group scheduling is configured) on each CPU.
- *
- * default: 5%
- */
-unsigned int sysctl_sched_dl_period = 1000000;
-int sysctl_sched_dl_runtime = 50000;
-
-/*
- * this_rq_lock - lock this runqueue and disable interrupts.
+/* this_rq_lock - lock this runqueue and disable interrupts.
  */
 static struct rq *this_rq_lock(void)
 	__acquires(rq->lock)
