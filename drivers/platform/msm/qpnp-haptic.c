@@ -1743,6 +1743,11 @@ static void qpnp_timed_enable_worker(struct work_struct *work)
 		else
 			new_vmax = hap->vmax_mv_strong;
 
+		if (new_vmax == QPNP_HAP_VMAX_MIN_MV) {
+			mutex_unlock(&hap->lock);
+			return;
+		}
+
 		if (new_vmax != hap->vmax_mv) {
 			hap->vmax_mv = new_vmax;
 			qpnp_hap_vmax_config(hap);
