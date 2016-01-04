@@ -1,7 +1,7 @@
 /*
  * drivers/cpufreq/cpufreq_ironactive.c
  *
- * Copyright (C) 2010 Google, Inc.
+ * Copyright (C) 2015 Google, Inc.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -12,7 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * Author: Mike Chan (mike@android.com)
+ * Authors: Mike Chan (mike@android.com) & Pranav Vashi <neobuddy89@gmail.com>
+ *
+ * Ironactive Version: 1.0
  *
  */
 
@@ -1597,7 +1599,10 @@ static int cpufreq_governor_ironactive(struct cpufreq_policy *policy,
 		del_timer_sync(&ppol->policy_slack_timer);
 		ppol->policy_timer.data = policy->cpu;
 		ppol->last_evaluated_jiffy = get_jiffies_64();
-		cpufreq_ironactive_timer_start(tunables, policy->cpu);
+		if (ppol->governor_enabled != 1)
+				cpufreq_ironactive_timer_start(tunables, policy->cpu);
+			else
+				WARN(1, "GOV_START is called without GOV_STOP\n");
 		ppol->governor_enabled = 1;
 		up_write(&ppol->enable_sem);
 		ppol->reject_notification = false;
