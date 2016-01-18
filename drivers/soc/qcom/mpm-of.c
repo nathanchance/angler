@@ -499,7 +499,7 @@ static bool msm_mpm_interrupts_detectable(int d, bool from_idle)
 				MSM_MPM_DEBUG_NON_DETECTABLE_IRQ;
 	}
 
-	ret = (bool) __bitmap_empty(irq_bitmap, unlisted->size);
+	ret = (bool) bitmap_empty(irq_bitmap, unlisted->size);
 
 	if (debug_mask && !ret) {
 		int i = 0;
