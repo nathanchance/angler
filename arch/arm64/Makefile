@@ -27,6 +27,7 @@ KBUILD_CFLAGS	+= $(call cc-option,$(ARM_ARCH_OPT),)
 
 KBUILD_CFLAGS	+= -mgeneral-regs-only
 KBUILD_CFLAGS	+= -fno-pic
+KBUILD_CFLAGS	+= -fno-asynchronous-unwind-tables
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
 KBUILD_CPPFLAGS	+= -mbig-endian
 AS		+= -EB
