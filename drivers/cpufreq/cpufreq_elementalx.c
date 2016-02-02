@@ -18,7 +18,7 @@
 #define DEF_FREQUENCY_UP_THRESHOLD		(90)
 #define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(20)
 #define DEF_ACTIVE_FLOOR_FREQ			(960000)
-#define MIN_SAMPLING_RATE			(10000)
+#define MIN_SAMPLING_RATE			(20000)
 #define DEF_SAMPLING_DOWN_FACTOR		(4)
 #define MAX_SAMPLING_DOWN_FACTOR		(20)
 #define FREQ_NEED_BURST(x)			(x < 800000 ? 1 : 0)
@@ -458,7 +458,10 @@ static struct ex_dbs_tuners *alloc_tuners(struct cpufreq_policy *policy)
 	tuners->down_differential = DEF_FREQUENCY_DOWN_DIFFERENTIAL;
 	tuners->ignore_nice_load = 0;
 	tuners->active_floor_freq = DEF_ACTIVE_FLOOR_FREQ;
-	tuners->sampling_down_factor = DEF_SAMPLING_DOWN_FACTOR;
+	if (policy->cpu > 3)
+		tuners->sampling_down_factor = 1;
+	else
+		tuners->sampling_down_factor = DEF_SAMPLING_DOWN_FACTOR;
 	tuners->powersave = 0;
 
 	save_tuners(policy, tuners);
