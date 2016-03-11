@@ -102,15 +102,19 @@ static inline bool range_on_lru(struct ashmem_range *range)
 #define page_range_subsumed_by_range(range, start, end) \
 	(((range)->pgstart <= (start)) && ((range)->pgend >= (end)))
 
-#define page_in_range(range, page) \
-	(((range)->pgstart <= (page)) && ((range)->pgend >= (page)))
+static inline int page_in_range(struct ashmem_range *range, size_t page)
+{
+	return (((range)->pgstart <= (page)) && ((range)->pgend >= (page)));
+}
 
 #define page_range_in_range(range, start, end) \
 	(page_in_range(range, start) || page_in_range(range, end) || \
 		page_range_subsumes_range(range, start, end))
 
-#define range_before_page(range, page) \
-	((range)->pgend < (page))
+static inline int range_before_page(struct ashmem_range *range, size_t page)
+{
+	return ((range)->pgend < (page));
+}
 
 #define PROT_MASK		(PROT_EXEC | PROT_READ | PROT_WRITE)
 
