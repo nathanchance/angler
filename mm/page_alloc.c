@@ -549,6 +549,8 @@ static inline void __free_one_page(struct page *page,
 
 	max_order = min_t(unsigned int, MAX_ORDER, pageblock_order + 1);
 
+	max_order = min_t(unsigned int, MAX_ORDER, pageblock_order + 1);
+
 	VM_BUG_ON(!zone_is_initialized(zone));
 
 	if (unlikely(PageCompound(page)))
