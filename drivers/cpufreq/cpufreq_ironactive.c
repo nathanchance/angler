@@ -1,7 +1,7 @@
 /*
  * drivers/cpufreq/cpufreq_ironactive.c
  *
- * Copyright (C) 2015 Google, Inc.
+ * Copyright (C) 2016 Google, Inc.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -33,6 +33,9 @@
 #include <linux/kthread.h>
 #include <linux/slab.h>
 #include <linux/kernel_stat.h>
+#ifdef CONFIG_STATE_NOTIFIER
+#include <linux/state_notifier.h>
+#endif
 #include <asm/cputime.h>
 
 #define CREATE_TRACE_POINTS
@@ -86,6 +89,7 @@ static struct mutex sched_lock;
 static unsigned int default_target_loads[] = {DEFAULT_TARGET_LOAD};
 
 #define DEFAULT_TIMER_RATE (20 * USEC_PER_MSEC)
+#define DEFAULT_TIMER_RATE_SUSP ((unsigned long)(50 * USEC_PER_MSEC))
 #define DEFAULT_ABOVE_HISPEED_DELAY DEFAULT_TIMER_RATE
 static unsigned int default_above_hispeed_delay[] = {
 	DEFAULT_ABOVE_HISPEED_DELAY };
@@ -111,6 +115,9 @@ struct cpufreq_ironactive_tunables {
 	 * The sample rate of the timer used to increase frequency
 	 */
 	unsigned long timer_rate;
+#ifdef CONFIG_STATE_NOTIFIER
+	unsigned long timer_rate_prev;
+#endif
 	/*
 	 * Wait this long before raising speed above hispeed, by default a
 	 * single timer interval.
@@ -437,6 +444,19 @@ static void cpufreq_ironactive_timer(unsigned long data)
 	now = ktime_to_us(ktime_get());
 	spin_lock_irqsave(&ppol->load_lock, flags);
 	ppol->last_evaluated_jiffy = get_jiffies_64();
+
+#ifdef CONFIG_STATE_NOTIFIER
+	if (!state_suspended &&
+		tunables->timer_rate != tunables->timer_rate_prev)
+		tunables->timer_rate = tunables->timer_rate_prev;
+	else if (state_suspended &&
+		tunables->timer_rate != DEFAULT_TIMER_RATE_SUSP) {
+		tunables->timer_rate_prev = tunables->timer_rate;
+		tunables->timer_rate
+			= max(tunables->timer_rate,
+				DEFAULT_TIMER_RATE_SUSP);
+	}
+#endif
 
 	if (tunables->use_sched_load)
 		sched_get_cpus_busy(ppol->cpu_busy_times,
@@ -988,6 +1008,9 @@ static ssize_t store_timer_rate(struct cpufreq_ironactive_tunables *tunables,
 		pr_warn("timer_rate not aligned to jiffy. Rounded up to %lu\n",
 			val_round);
 	tunables->timer_rate = val_round;
+#ifdef CONFIG_STATE_NOTIFIER
+	tunables->timer_rate_prev = val_round;
+#endif
 
 	if (!tunables->use_sched_load)
 		return count;
@@ -996,8 +1019,12 @@ static ssize_t store_timer_rate(struct cpufreq_ironactive_tunables *tunables,
 		if (!per_cpu(polinfo, cpu))
 			continue;
 		t = per_cpu(polinfo, cpu)->cached_tunables;
-		if (t && t->use_sched_load)
+		if (t && t->use_sched_load) {
 			t->timer_rate = val_round;
+#ifdef CONFIG_STATE_NOTIFIER
+			t->timer_rate_prev = val_round;
+#endif
+		}
 	}
 	set_window_helper(tunables);
 
@@ -1431,6 +1458,9 @@ static struct cpufreq_ironactive_tunables *alloc_tunable(
 	tunables->ntarget_loads = ARRAY_SIZE(default_target_loads);
 	tunables->min_sample_time = DEFAULT_MIN_SAMPLE_TIME;
 	tunables->timer_rate = DEFAULT_TIMER_RATE;
+#ifdef CONFIG_STATE_NOTIFIER
+	tunables->timer_rate_prev = DEFAULT_TIMER_RATE;
+#endif
 	tunables->boostpulse_duration_val = DEFAULT_MIN_SAMPLE_TIME;
 	tunables->timer_slack_val = DEFAULT_TIMER_SLACK;
 
