@@ -165,7 +165,7 @@ void fixup_top_recursive(struct dentry *parent) {
 	info = SDCARDFS_I(parent->d_inode);
 	spin_lock(&parent->d_lock);
 	list_for_each_entry(dentry, &parent->d_subdirs, d_child) {
-		if (dentry && dentry->d_inode) {
+		if (dentry->d_inode) {
 			if (SDCARDFS_I(parent->d_inode)->top != SDCARDFS_I(dentry->d_inode)->top) {
 				get_derived_permission(parent, dentry);
 				fix_derived_permission(dentry->d_inode);
