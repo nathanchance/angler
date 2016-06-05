@@ -1314,7 +1314,7 @@ unsigned int __read_mostly sysctl_sched_spill_load_pct = 100;
  * sched_small_task are considered as small tasks.
  */
 unsigned int __read_mostly sched_small_task;
-unsigned int __read_mostly sysctl_sched_small_task_pct = 10;
+unsigned int __read_mostly sysctl_sched_small_task_pct = 30; // 10;
 
 /*
  * Tasks with demand >= sched_heavy_task will have their
@@ -1335,7 +1335,7 @@ unsigned int __read_mostly sched_heavy_task;
  * capacity.
  */
 unsigned int sched_upmigrate;
-unsigned int sysctl_sched_upmigrate_pct = 80;
+unsigned int sysctl_sched_upmigrate_pct = 95; // for msm8992/msm8994
 
 /*
  * Big tasks, once migrated, will need to drop their bandwidth
@@ -1343,14 +1343,14 @@ unsigned int sysctl_sched_upmigrate_pct = 80;
  * migrated.
  */
 unsigned int sched_downmigrate;
-unsigned int sysctl_sched_downmigrate_pct = 60;
+unsigned int sysctl_sched_downmigrate_pct = 85; // for msm8992/msm8994
 
 /*
  * Tasks whose nice value is > sysctl_sched_upmigrate_min_nice are never
  * considered as "big" tasks.
  */
-static int __read_mostly sched_upmigrate_min_nice = 15;
-int __read_mostly sysctl_sched_upmigrate_min_nice = 15;
+static int __read_mostly sched_upmigrate_min_nice = 9;
+int __read_mostly sysctl_sched_upmigrate_min_nice = 9;
 
 /* grp upmigrate/downmigrate */
 unsigned int __read_mostly sched_grp_upmigrate;
