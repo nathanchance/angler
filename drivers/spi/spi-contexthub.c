@@ -780,6 +780,7 @@ static long spich_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 			if (__copy_from_user(&t, (void __user *)arg, sizeof(t))) {
 				err = -EFAULT;
+				break;
 			}
 
 			if (gpio_get_value
@@ -834,6 +835,7 @@ static long spich_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			if (__copy_from_user(ioc, (void __user *)arg, tmp)) {
 				kfree(ioc);
 				err = -EFAULT;
+				break;
 			} else {
 				err = spich_message(spich, ioc, n_ioc);
 			}
