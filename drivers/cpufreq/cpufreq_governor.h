@@ -182,8 +182,10 @@ struct cs_dbs_tuners {
 	unsigned int sampling_down_factor;
 	unsigned int up_threshold;
 	unsigned int down_threshold;
+	unsigned int down_threshold_suspended;
 	unsigned int freq_step;
 	unsigned int touch_load_duration;
+	unsigned int sleep_depth;
 };
 
 /* Common Governor data across policies */
