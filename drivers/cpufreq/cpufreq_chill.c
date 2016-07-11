@@ -19,18 +19,22 @@
 #endif
 
 /* Chill version macros */
-#define CHILL_VERSION_MAJOR		(1)
-#define CHILL_VERSION_MINOR		(0)
+#define CHILL_VERSION_MAJOR			(1)
+#define CHILL_VERSION_MINOR			(1)
 
 /* Chill governor macros */
 #define DEF_FREQUENCY_UP_THRESHOLD		(80)
 #define DEF_FREQUENCY_DOWN_THRESHOLD		(20)
 #define DEF_FREQUENCY_DOWN_THRESHOLD_SUSPENDED	(20)
 #define DEF_FREQUENCY_STEP			(5)
-#define DEF_SLEEP_DEPTH			(1)
-#define DEF_SAMPLING_RATE		(20000)
+#define DEF_SLEEP_DEPTH				(1)
+#define DEF_SAMPLING_RATE			(20000)
+#define DEF_BOOST_ENABLED			(1)
+#define DEF_BOOST_COUNT				(3)
 
 static DEFINE_PER_CPU(struct cs_cpu_dbs_info_s, cs_cpu_dbs_info);
+
+static unsigned int boost_counter = 0;
 
 static inline unsigned int get_freq_target(struct cs_dbs_tuners *cs_tuners,
 					   struct cpufreq_policy *policy)
@@ -80,10 +84,17 @@ static void cs_check_cpu(int cpu, unsigned int load)
 			return;
 #endif
 
-		dbs_info->requested_freq += get_freq_target(cs_tuners, policy);
+		/* Boost if count is reached, otherwise increase freq */
+		if (cs_tuners->boost_enabled && boost_counter >= cs_tuners->boost_count)
+			dbs_info->requested_freq += get_freq_target(cs_tuners, policy->max);
+		else
+			dbs_info->requested_freq += get_freq_target(cs_tuners, policy);
 
-		if (dbs_info->requested_freq > policy->max)
+ 		/* Make sure max hasn't been reached, otherwise increment boost_counter */
+		if (dbs_info->requested_freq >= policy->max)
 			dbs_info->requested_freq = policy->max;
+		else
+			boost_counter++;
 
 		__cpufreq_driver_target(policy, dbs_info->requested_freq,
 			CPUFREQ_RELATION_H);
@@ -302,6 +313,47 @@ static ssize_t store_sleep_depth(struct dbs_data *dbs_data, const char *buf,
 	return count;
 }
 
+static ssize_t store_boost_enabled(struct dbs_data *dbs_data, const char *buf,
+		size_t count)
+{
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
+	unsigned int input;
+	int ret;
+	ret = sscanf(buf, "%u", &input);
+
+	if (ret != 1)
+		return -EINVAL;
+
+	if (input >= 1)
+		input = 1;
+	else
+		input = 0;
+
+	cs_tuners->boost_enabled = input;
+	return count;
+}
+
+static ssize_t store_boost_count(struct dbs_data *dbs_data, const char *buf,
+		size_t count)
+{
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
+	unsigned int input;
+	int ret;
+	ret = sscanf(buf, "%u", &input);
+
+	if (ret != 1)
+		return -EINVAL;
+
+	if (input >= 5)
+		input = 5;
+
+	if (input = 0)
+		input = 0;
+
+	cs_tuners->boost_count = input;
+	return count;
+}
+
 show_store_one(cs, sampling_rate);
 show_store_one(cs, up_threshold);
 show_store_one(cs, down_threshold);
@@ -310,6 +362,8 @@ show_store_one(cs, ignore_nice_load);
 show_store_one(cs, freq_step);
 declare_show_sampling_rate_min(cs);
 show_store_one(cs, sleep_depth);
+show_store_one(cs, boost_enabled);
+show_store_one(cs, boost_count);
 
 gov_sys_pol_attr_rw(sampling_rate);
 gov_sys_pol_attr_rw(up_threshold);
@@ -319,6 +373,8 @@ gov_sys_pol_attr_rw(ignore_nice_load);
 gov_sys_pol_attr_rw(freq_step);
 gov_sys_pol_attr_ro(sampling_rate_min);
 gov_sys_pol_attr_rw(sleep_depth);
+gov_sys_pol_attr_rw(boost_enabled);
+gov_sys_pol_attr_rw(boost_count);
 
 static struct attribute *dbs_attributes_gov_sys[] = {
 	&sampling_rate_min_gov_sys.attr,
@@ -329,6 +385,8 @@ static struct attribute *dbs_attributes_gov_sys[] = {
 	&ignore_nice_load_gov_sys.attr,
 	&freq_step_gov_sys.attr,
 	&sleep_depth_gov_sys.attr,
+	&boost_enabled_gov_sys.attr,
+	&boost_count_gov_sys.attr,
 	NULL
 };
 
@@ -346,6 +404,8 @@ static struct attribute *dbs_attributes_gov_pol[] = {
 	&ignore_nice_load_gov_pol.attr,
 	&freq_step_gov_pol.attr,
 	&sleep_depth_gov_pol.attr,
+	&boost_enabled_gov_pol.attr,
+	&boost_count_gov_pol.attr,
 	NULL
 };
 
@@ -372,6 +432,8 @@ static int cs_init(struct dbs_data *dbs_data)
 	tuners->ignore_nice_load = 0;
 	tuners->freq_step = DEF_FREQUENCY_STEP;
 	tuners->sleep_depth = DEF_SLEEP_DEPTH;
+	tuners->boost_enabled = DEF_BOOST_ENABLED;
+	tuners->boost_count = DEF_BOOST_COUNT;
 
 	dbs_data->tuners = tuners;
 	dbs_data->min_sampling_rate = DEF_SAMPLING_RATE;
