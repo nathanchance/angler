@@ -203,6 +203,8 @@ struct cs_dbs_tuners {
 	unsigned int down_threshold_suspended;
 	unsigned int freq_step;
 	unsigned int sleep_depth;
+	unsigned int boost_enabled;
+	unsigned int boost_count;
 };
 
 struct ex_dbs_tuners {
