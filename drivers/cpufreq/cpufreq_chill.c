@@ -13,14 +13,14 @@
  */
 
 #include <linux/slab.h>
-#include "cpufreq_chill.h"
+#include "cpufreq_governor.h"
 #ifdef CONFIG_POWERSUSPEND
 #include <linux/powersuspend.h>
 #endif
 
 /* Chill version macros */
 #define CHILL_VERSION_MAJOR			(1)
-#define CHILL_VERSION_MINOR			(4)
+#define CHILL_VERSION_MINOR			(5)
 
 /* Chill governor macros */
 #define DEF_FREQUENCY_UP_THRESHOLD		(80)
@@ -36,10 +36,10 @@ static DEFINE_PER_CPU(struct cs_cpu_dbs_info_s, cs_cpu_dbs_info);
 
 static unsigned int boost_counter = 0;
 
-static inline unsigned int get_freq_target(struct chill_dbs_tuners *chill_tuners,
+static inline unsigned int get_freq_target(struct cs_dbs_tuners *cs_tuners,
 					   struct cpufreq_policy *policy)
 {
-	unsigned int freq_target = (chill_tuners->freq_step * policy->max) / 100;
+	unsigned int freq_target = (cs_tuners->freq_step * policy->max) / 100;
 
 	/* max freq cannot be less than 100. But who knows... */
 	if (unlikely(freq_target == 0))
@@ -57,22 +57,22 @@ static inline unsigned int get_freq_target(struct chill_dbs_tuners *chill_tuners
  * Any frequency increase takes it to the maximum frequency. Frequency reduction
  * happens at minimum steps of 5% (default) of maximum frequency
  */
-static void chill_check_cpu(int cpu, unsigned int load)
+static void cs_check_cpu(int cpu, unsigned int load)
 {
 	struct cs_cpu_dbs_info_s *dbs_info = &per_cpu(cs_cpu_dbs_info, cpu);
 	struct cpufreq_policy *policy = dbs_info->cdbs.cur_policy;
 	struct dbs_data *dbs_data = policy->governor_data;
-	struct chill_dbs_tuners *chill_tuners = dbs_data->tuners;
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
 
 	/*
 	 * break out if we 'cannot' reduce the speed as the user might
 	 * want freq_step to be zero
 	 */
-	if (chill_tuners->freq_step == 0)
+	if (cs_tuners->freq_step == 0)
 		return;
 
 	/* Check for frequency increase */
-	if (load > chill_tuners->up_threshold) {
+	if (load > cs_tuners->up_threshold) {
 
 		/* if we are already at full speed then break out early */
 		if (dbs_info->requested_freq == policy->max)
@@ -85,10 +85,10 @@ static void chill_check_cpu(int cpu, unsigned int load)
 #endif
 
 		/* Boost if count is reached, otherwise increase freq */
-		if (chill_tuners->boost_enabled && boost_counter >= chill_tuners->boost_count)
+		if (cs_tuners->boost_enabled && boost_counter >= cs_tuners->boost_count)
 			dbs_info->requested_freq = policy->max;
 		else
-			dbs_info->requested_freq += get_freq_target(chill_tuners, policy);
+			dbs_info->requested_freq += get_freq_target(cs_tuners, policy);
 
  		/* Make sure max hasn't been reached, otherwise increment boost_counter */
 		if (dbs_info->requested_freq >= policy->max)
@@ -102,7 +102,7 @@ static void chill_check_cpu(int cpu, unsigned int load)
 	}
 
 	/* Check for frequency decrease */
-	if (load < chill_tuners->down_threshold) {
+	if (load < cs_tuners->down_threshold) {
 		unsigned int freq_target;
 		/*
 		 * if we cannot reduce the frequency anymore, break out early
@@ -110,7 +110,7 @@ static void chill_check_cpu(int cpu, unsigned int load)
 		if (policy->cur == policy->min)
 			return;
 
-		freq_target = get_freq_target(chill_tuners, policy);
+		freq_target = get_freq_target(cs_tuners, policy);
 		if (dbs_info->requested_freq > freq_target)
 			dbs_info->requested_freq -= freq_target;
 		else
@@ -122,7 +122,7 @@ static void chill_check_cpu(int cpu, unsigned int load)
 	}
 }
 
-static void chill_dbs_timer(struct work_struct *work)
+static void cs_dbs_timer(struct work_struct *work)
 {
 	struct cs_cpu_dbs_info_s *dbs_info = container_of(work,
 			struct cs_cpu_dbs_info_s, cdbs.work.work);
@@ -130,14 +130,14 @@ static void chill_dbs_timer(struct work_struct *work)
 	struct cs_cpu_dbs_info_s *core_dbs_info = &per_cpu(cs_cpu_dbs_info,
 			cpu);
 	struct dbs_data *dbs_data = dbs_info->cdbs.cur_policy->governor_data;
-	struct chill_dbs_tuners *chill_tuners = dbs_data->tuners;
-	int delay = delay_for_sampling_rate(chill_tuners->sampling_rate);
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
+	int delay = delay_for_sampling_rate(cs_tuners->sampling_rate);
 	bool modify_all = true;
-	unsigned int sampling_rate_suspended = chill_tuners->sampling_rate * chill_tuners->sleep_depth;
+	unsigned int sampling_rate_suspended = cs_tuners->sampling_rate * cs_tuners->sleep_depth;
 
 	mutex_lock(&core_dbs_info->cdbs.timer_mutex);
 
-	if (!need_load_eval(&core_dbs_info->cdbs, chill_tuners->sampling_rate))
+	if (!need_load_eval(&core_dbs_info->cdbs, cs_tuners->sampling_rate))
 		modify_all = false;
 #ifdef CONFIG_POWERSUSPEND
 	else if (power_suspended && need_load_eval(&core_dbs_info->cdbs, sampling_rate_suspended))
@@ -175,12 +175,12 @@ static int dbs_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
 }
 
 /************************** sysfs interface ************************/
-static struct common_dbs_data chill_dbs_cdata;
+static struct common_dbs_data cs_dbs_cdata;
 
 static ssize_t store_sampling_rate(struct dbs_data *dbs_data, const char *buf,
 		size_t count)
 {
-	struct chill_dbs_tuners *chill_tuners = dbs_data->tuners;
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
 	unsigned int input;
 	int ret;
 	ret = sscanf(buf, "%u", &input);
@@ -188,63 +188,63 @@ static ssize_t store_sampling_rate(struct dbs_data *dbs_data, const char *buf,
 	if (ret != 1)
 		return -EINVAL;
 
-	chill_tuners->sampling_rate = max(input, dbs_data->min_sampling_rate);
+	cs_tuners->sampling_rate = max(input, dbs_data->min_sampling_rate);
 	return count;
 }
 
 static ssize_t store_up_threshold(struct dbs_data *dbs_data, const char *buf,
 		size_t count)
 {
-	struct chill_dbs_tuners *chill_tuners = dbs_data->tuners;
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
 	unsigned int input;
 	int ret;
 	ret = sscanf(buf, "%u", &input);
 
-	if (ret != 1 || input > 100 || input <= chill_tuners->down_threshold)
+	if (ret != 1 || input > 100 || input <= cs_tuners->down_threshold)
 		return -EINVAL;
 
-	chill_tuners->up_threshold = input;
+	cs_tuners->up_threshold = input;
 	return count;
 }
 
 static ssize_t store_down_threshold(struct dbs_data *dbs_data, const char *buf,
 		size_t count)
 {
-	struct chill_dbs_tuners *chill_tuners = dbs_data->tuners;
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
 	unsigned int input;
 	int ret;
 	ret = sscanf(buf, "%u", &input);
 
 	/* cannot be lower than 11 otherwise freq will not fall */
 	if (ret != 1 || input < 11 || input > 100 ||
-			input >= chill_tuners->up_threshold)
+			input >= cs_tuners->up_threshold)
 		return -EINVAL;
 
-	chill_tuners->down_threshold = input;
+	cs_tuners->down_threshold = input;
 	return count;
 }
 
 static ssize_t store_down_threshold_suspended(struct dbs_data *dbs_data, const char *buf,
 		size_t count)
 {
-	struct chill_dbs_tuners *chill_tuners = dbs_data->tuners;
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
 	unsigned int input;
 	int ret;
 	ret = sscanf(buf, "%u", &input);
 
 	/* cannot be lower than 11 otherwise freq will not fall */
 	if (ret != 1 || input < 11 || input > 100 ||
-			input >= chill_tuners->up_threshold)
+			input >= cs_tuners->up_threshold)
 		return -EINVAL;
 
-	chill_tuners->down_threshold = input;
+	cs_tuners->down_threshold = input;
 	return count;
 }
 
 static ssize_t store_ignore_nice_load(struct dbs_data *dbs_data,
 		const char *buf, size_t count)
 {
-	struct chill_dbs_tuners *chill_tuners = dbs_data->tuners;
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
 	unsigned int input, j;
 	int ret;
 
@@ -255,10 +255,10 @@ static ssize_t store_ignore_nice_load(struct dbs_data *dbs_data,
 	if (input > 1)
 		input = 1;
 
-	if (input == chill_tuners->ignore_nice_load) /* nothing to do */
+	if (input == cs_tuners->ignore_nice_load) /* nothing to do */
 		return count;
 
-	chill_tuners->ignore_nice_load = input;
+	cs_tuners->ignore_nice_load = input;
 
 	/* we need to re-evaluate prev_cpu_idle */
 	for_each_online_cpu(j) {
@@ -266,7 +266,7 @@ static ssize_t store_ignore_nice_load(struct dbs_data *dbs_data,
 		dbs_info = &per_cpu(cs_cpu_dbs_info, j);
 		dbs_info->cdbs.prev_cpu_idle = get_cpu_idle_time(j,
 					&dbs_info->cdbs.prev_cpu_wall, 0);
-		if (chill_tuners->ignore_nice_load)
+		if (cs_tuners->ignore_nice_load)
 			dbs_info->cdbs.prev_cpu_nice =
 				kcpustat_cpu(j).cpustat[CPUTIME_NICE];
 	}
@@ -276,7 +276,7 @@ static ssize_t store_ignore_nice_load(struct dbs_data *dbs_data,
 static ssize_t store_freq_step(struct dbs_data *dbs_data, const char *buf,
 		size_t count)
 {
-	struct chill_dbs_tuners *chill_tuners = dbs_data->tuners;
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
 	unsigned int input;
 	int ret;
 	ret = sscanf(buf, "%u", &input);
@@ -291,14 +291,14 @@ static ssize_t store_freq_step(struct dbs_data *dbs_data, const char *buf,
 	 * no need to test here if freq_step is zero as the user might actually
 	 * want this, they would be crazy though :)
 	 */
-	chill_tuners->freq_step = input;
+	cs_tuners->freq_step = input;
 	return count;
 }
 
 static ssize_t store_sleep_depth(struct dbs_data *dbs_data, const char *buf,
 		size_t count)
 {
-	struct chill_dbs_tuners *chill_tuners = dbs_data->tuners;
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
 	unsigned int input;
 	int ret;
 	ret = sscanf(buf, "%u", &input);
@@ -309,14 +309,14 @@ static ssize_t store_sleep_depth(struct dbs_data *dbs_data, const char *buf,
 	if (input > 5)
 		input = 5;
 
-	chill_tuners->sleep_depth = input;
+	cs_tuners->sleep_depth = input;
 	return count;
 }
 
 static ssize_t store_boost_enabled(struct dbs_data *dbs_data, const char *buf,
 		size_t count)
 {
-	struct chill_dbs_tuners *chill_tuners = dbs_data->tuners;
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
 	unsigned int input;
 	int ret;
 	ret = sscanf(buf, "%u", &input);
@@ -329,14 +329,14 @@ static ssize_t store_boost_enabled(struct dbs_data *dbs_data, const char *buf,
 	else
 		input = 0;
 
-	chill_tuners->boost_enabled = input;
+	cs_tuners->boost_enabled = input;
 	return count;
 }
 
 static ssize_t store_boost_count(struct dbs_data *dbs_data, const char *buf,
 		size_t count)
 {
-	struct chill_dbs_tuners *chill_tuners = dbs_data->tuners;
+	struct cs_dbs_tuners *cs_tuners = dbs_data->tuners;
 	unsigned int input;
 	int ret;
 	ret = sscanf(buf, "%u", &input);
@@ -350,20 +350,20 @@ static ssize_t store_boost_count(struct dbs_data *dbs_data, const char *buf,
 	if (input = 0)
 		input = 0;
 
-	chill_tuners->boost_count = input;
+	cs_tuners->boost_count = input;
 	return count;
 }
 
-show_store_one(chill, sampling_rate);
-show_store_one(chill, up_threshold);
-show_store_one(chill, down_threshold);
-show_store_one(chill, down_threshold_suspended);
-show_store_one(chill, ignore_nice_load);
-show_store_one(chill, freq_step);
-declare_show_sampling_rate_min(chill);
-show_store_one(chill, sleep_depth);
-show_store_one(chill, boost_enabled);
-show_store_one(chill, boost_count);
+show_store_one(cs, sampling_rate);
+show_store_one(cs, up_threshold);
+show_store_one(cs, down_threshold);
+show_store_one(cs, down_threshold_suspended);
+show_store_one(cs, ignore_nice_load);
+show_store_one(cs, freq_step);
+declare_show_sampling_rate_min(cs);
+show_store_one(cs, sleep_depth);
+show_store_one(cs, boost_enabled);
+show_store_one(cs, boost_count);
 
 gov_sys_pol_attr_rw(sampling_rate);
 gov_sys_pol_attr_rw(up_threshold);
@@ -390,7 +390,7 @@ static struct attribute *dbs_attributes_gov_sys[] = {
 	NULL
 };
 
-static struct attribute_group chill_attr_group_gov_sys = {
+static struct attribute_group cs_attr_group_gov_sys = {
 	.attrs = dbs_attributes_gov_sys,
 	.name = "chill",
 };
@@ -409,16 +409,16 @@ static struct attribute *dbs_attributes_gov_pol[] = {
 	NULL
 };
 
-static struct attribute_group chill_attr_group_gov_pol = {
+static struct attribute_group cs_attr_group_gov_pol = {
 	.attrs = dbs_attributes_gov_pol,
 	.name = "chill",
 };
 
 /************************** sysfs end ************************/
 
-static int chill_init(struct dbs_data *dbs_data)
+static int cs_init(struct dbs_data *dbs_data)
 {
-	struct chill_dbs_tuners *tuners;
+	struct cs_dbs_tuners *tuners;
 
 	tuners = kzalloc(sizeof(*tuners), GFP_KERNEL);
 	if (!tuners) {
@@ -441,38 +441,38 @@ static int chill_init(struct dbs_data *dbs_data)
 	return 0;
 }
 
-static void chill_exit(struct dbs_data *dbs_data)
+static void cs_exit(struct dbs_data *dbs_data)
 {
 	kfree(dbs_data->tuners);
 }
 
 define_get_cpu_dbs_routines(cs_cpu_dbs_info);
 
-static struct notifier_block chill_cpufreq_notifier_block = {
+static struct notifier_block cs_cpufreq_notifier_block = {
 	.notifier_call = dbs_cpufreq_notifier,
 };
 
-static struct cs_ops chill_ops = {
-	.notifier_block = &chill_cpufreq_notifier_block,
+static struct cs_ops cs_ops = {
+	.notifier_block = &cs_cpufreq_notifier_block,
 };
 
-static struct common_dbs_data chill_dbs_cdata = {
-	.governor = GOV_CHILL,
-	.attr_group_gov_sys = &chill_attr_group_gov_sys,
-	.attr_group_gov_pol = &chill_attr_group_gov_pol,
+static struct common_dbs_data cs_dbs_cdata = {
+	.governor = 1,
+	.attr_group_gov_sys = &cs_attr_group_gov_sys,
+	.attr_group_gov_pol = &cs_attr_group_gov_pol,
 	.get_cpu_cdbs = get_cpu_cdbs,
 	.get_cpu_dbs_info_s = get_cpu_dbs_info_s,
-	.gov_dbs_timer = chill_dbs_timer,
-	.gov_check_cpu = chill_check_cpu,
-	.gov_ops = &chill_ops,
-	.init = chill_init,
-	.exit = chill_exit,
+	.gov_dbs_timer = cs_dbs_timer,
+	.gov_check_cpu = cs_check_cpu,
+	.gov_ops = &cs_ops,
+	.init = cs_init,
+	.exit = cs_exit,
 };
 
-static int chill_cpufreq_governor_dbs(struct cpufreq_policy *policy,
+static int cs_cpufreq_governor_dbs(struct cpufreq_policy *policy,
 				   unsigned int event)
 {
-	return cpufreq_governor_dbs(policy, &chill_dbs_cdata, event);
+	return cpufreq_governor_dbs(policy, &cs_dbs_cdata, event);
 }
 
 #ifndef CONFIG_CPU_FREQ_DEFAULT_GOV_CHILL
@@ -480,7 +480,7 @@ static
 #endif
 struct cpufreq_governor cpufreq_gov_chill = {
 	.name			= "chill",
-	.governor		= chill_cpufreq_governor_dbs,
+	.governor		= cs_cpufreq_governor_dbs,
 	.max_transition_latency	= TRANSITION_LATENCY_LIMIT,
 	.owner			= THIS_MODULE,
 };
@@ -508,3 +508,4 @@ fs_initcall(cpufreq_gov_dbs_init);
 module_init(cpufreq_gov_dbs_init);
 #endif
 module_exit(cpufreq_gov_dbs_exit);
+
