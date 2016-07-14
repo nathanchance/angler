@@ -409,6 +409,7 @@ endchoice
 
 config HAVE_CONTEXT_TRACKING
 	bool
+	default y
 	help
 	  Provide kernel/user boundaries probes necessary for subsystems
 	  that need it, such as userspace RCU extended quiescent state.
