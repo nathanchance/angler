@@ -20,7 +20,7 @@
 
 /* Chill version macros */
 #define CHILL_VERSION_MAJOR			(1)
-#define CHILL_VERSION_MINOR			(3)
+#define CHILL_VERSION_MINOR			(4)
 
 /* Chill governor macros */
 #define DEF_FREQUENCY_UP_THRESHOLD		(80)
@@ -457,7 +457,7 @@ static struct cs_ops chill_ops = {
 };
 
 static struct common_dbs_data chill_dbs_cdata = {
-	.governor = 1,
+	.governor = GOV_CHILL,
 	.attr_group_gov_sys = &chill_attr_group_gov_sys,
 	.attr_group_gov_pol = &chill_attr_group_gov_pol,
 	.get_cpu_cdbs = get_cpu_cdbs,
