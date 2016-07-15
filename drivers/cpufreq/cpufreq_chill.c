@@ -20,17 +20,17 @@
 
 /* Chill version macros */
 #define CHILL_VERSION_MAJOR			(1)
-#define CHILL_VERSION_MINOR			(5)
+#define CHILL_VERSION_MINOR			(6)
 
 /* Chill governor macros */
-#define DEF_FREQUENCY_UP_THRESHOLD		(80)
-#define DEF_FREQUENCY_DOWN_THRESHOLD		(20)
+#define DEF_FREQUENCY_UP_THRESHOLD		(85)
+#define DEF_FREQUENCY_DOWN_THRESHOLD		(30)
 #define DEF_FREQUENCY_DOWN_THRESHOLD_SUSPENDED	(20)
 #define DEF_FREQUENCY_STEP			(5)
-#define DEF_SLEEP_DEPTH				(1)
+#define DEF_SLEEP_DEPTH				(2)
 #define DEF_SAMPLING_RATE			(20000)
 #define DEF_BOOST_ENABLED			(1)
-#define DEF_BOOST_COUNT				(3)
+#define DEF_BOOST_COUNT				(7)
 
 static DEFINE_PER_CPU(struct cs_cpu_dbs_info_s, cs_cpu_dbs_info);
 
@@ -308,6 +308,9 @@ static ssize_t store_sleep_depth(struct dbs_data *dbs_data, const char *buf,
 
 	if (input > 5)
 		input = 5;
+
+	if (input < 1)
+		input = 1;
 
 	cs_tuners->sleep_depth = input;
 	return count;
