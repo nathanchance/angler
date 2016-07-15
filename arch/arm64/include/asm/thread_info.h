@@ -113,6 +113,7 @@ static inline struct thread_info *current_thread_info(void)
 #define TIF_SYSCALL_TRACEPOINT	10
 #define TIF_SECCOMP		11
 #define TIF_MEMDIE		18	/* is terminating due to OOM killer */
+#define TIF_NOHZ		7
 #define TIF_FREEZE		19
 #define TIF_RESTORE_SIGMASK	20
 #define TIF_SINGLESTEP		21
