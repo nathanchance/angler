@@ -20,12 +20,12 @@
 
 /* Chill version macros */
 #define CHILL_VERSION_MAJOR			(1)
-#define CHILL_VERSION_MINOR			(7)
+#define CHILL_VERSION_MINOR			(8)
 
 /* Chill governor macros */
 #define DEF_FREQUENCY_UP_THRESHOLD		(85)
 #define DEF_FREQUENCY_DOWN_THRESHOLD		(30)
-#define DEF_FREQUENCY_DOWN_THRESHOLD_SUSPENDED	(20)
+#define DEF_FREQUENCY_DOWN_THRESHOLD_SUSPENDED	(60)
 #define DEF_FREQUENCY_STEP			(5)
 #define DEF_SAMPLING_RATE			(20000)
 #define DEF_BOOST_ENABLED			(1)
@@ -105,6 +105,45 @@ static void cs_check_cpu(int cpu, unsigned int load)
 		return;
 	}
 
+#ifdef CONFIG_POWERSUSPEND
+	/* Check for frequency decrease */
+	if (!power_suspended && load < cs_tuners->down_threshold) {
+		unsigned int freq_target;
+		/*
+		 * if we cannot reduce the frequency anymore, break out early
+		 */
+		if (policy->cur == policy->min)
+			return;
+
+		freq_target = get_freq_target(cs_tuners, policy);
+		if (dbs_info->requested_freq > freq_target)
+			dbs_info->requested_freq -= freq_target;
+		else
+			dbs_info->requested_freq = policy->min;
+
+		__cpufreq_driver_target(policy, dbs_info->requested_freq,
+				CPUFREQ_RELATION_L);
+		return;
+	} else if (power_suspended && load <= cs_tuners->down_threshold_suspended) {
+		unsigned int freq_target;
+		/*
+		 * if we cannot reduce the frequency anymore, break out early
+		 */
+		if (policy->cur == policy->min)
+			return;
+
+		freq_target = get_freq_target(cs_tuners, policy);
+		if (dbs_info->requested_freq > freq_target)
+			dbs_info->requested_freq -= freq_target;
+		else
+			dbs_info->requested_freq = policy->min;
+
+		__cpufreq_driver_target(policy, dbs_info->requested_freq,
+				CPUFREQ_RELATION_L);
+		return;
+	}
+
+#else
 	/* Check for frequency decrease */
 	if (load < cs_tuners->down_threshold) {
 		unsigned int freq_target;
@@ -124,6 +163,7 @@ static void cs_check_cpu(int cpu, unsigned int load)
 				CPUFREQ_RELATION_L);
 		return;
 	}
+#endif
 }
 
 static void cs_dbs_timer(struct work_struct *work)
