@@ -22,6 +22,7 @@ obj-y += sched/
 obj-y += locking/
 obj-y += power/
 obj-y += cpu/
+obj-y += printk_interface.o
 obj-y += irq/
 
 obj-$(CONFIG_CHECKPOINT_RESTORE) += kcmp.o
