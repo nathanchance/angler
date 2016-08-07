@@ -889,7 +889,7 @@ static void __init msm_sched_clock_init(void)
 }
 
 #ifdef CONFIG_LOCAL_TIMERS
-int __cpuinit local_timer_setup(struct clock_event_device *evt)
+int local_timer_setup(struct clock_event_device *evt)
 {
 	static DEFINE_PER_CPU(bool, first_boot) = true;
 	struct msm_clock *clock = &msm_clocks[msm_global_timer];
