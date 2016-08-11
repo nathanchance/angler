@@ -3430,7 +3430,7 @@
 		qcom,limit-temp = <60>;
 		qcom,temp-hysteresis = <10>;
 		qcom,therm-reset-temp = <115>;
-		qcom,freq-step = <2>;
+		qcom,freq-step = <1>;
 		qcom,freq-control-mask = <0xff>;
 		qcom,core-limit-temp = <80>;
 		qcom,core-temp-hysteresis = <10>;
