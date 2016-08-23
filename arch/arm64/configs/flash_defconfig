@@ -1,4 +1,4 @@
-x#
+#
 # Automatically generated file; DO NOT EDIT.
 # Linux/arm64 3.10.104-FLASH-N6P Kernel Configuration
 #
@@ -77,6 +77,7 @@ CONFIG_F2FS_FS_ENCRYPTION=y
 # CONFIG_F2FS_CHECK_FS is not set
 CONFIG_KEXEC=y
 CONFIG_KEXEC_HARDBOOT=y
+CONFIG_QUICK_WAKEUP=y
 
 #
 # IRQ subsystem
