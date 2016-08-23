@@ -1,4 +1,4 @@
-#
+x#
 # Automatically generated file; DO NOT EDIT.
 # Linux/arm64 3.10.104-FLASH-N6P Kernel Configuration
 #
@@ -4016,4 +4016,4 @@ CONFIG_LIBFDT=y
 CONFIG_OID_REGISTRY=y
 CONFIG_QMI_ENCDEC=y
 # CONFIG_QMI_ENCDEC_DEBUG is not set
-CONFIG_STRICT_MEMORY_RWX=y
+# CONFIG_STRICT_MEMORY_RWX is not set
