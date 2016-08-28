@@ -1993,6 +1993,7 @@ static ssize_t snd_timer_user_read(struct file *file, char __user *buffer,
 		tu->qhead %= tu->queue_size;
 		spin_unlock_irq(&tu->qlock);
 
+		mutex_lock(&tu->ioctl_lock);
 		if (tu->tread) {
 			if (copy_to_user(buffer, &tu->tqueue[qhead],
 					 sizeof(struct snd_timer_tread)))
@@ -2002,6 +2003,7 @@ static ssize_t snd_timer_user_read(struct file *file, char __user *buffer,
 					 sizeof(struct snd_timer_read)))
 				err = -EFAULT;
 		}
+		mutex_unlock(&tu->ioctl_lock);
 
 		spin_lock_irq(&tu->qlock);
 		tu->qused--;
