@@ -23,7 +23,6 @@ extern const struct file_operations random_fops, urandom_fops;
 #endif
 
 unsigned int get_random_int(void);
-unsigned long get_random_long(void);
 unsigned long randomize_range(unsigned long start, unsigned long end, unsigned long len);
 
 u32 prandom_u32(void);
@@ -89,6 +88,22 @@ static inline int arch_get_random_int(unsigned int *v)
 {
 	return 0;
 }
+static inline int arch_has_random(void)
+{
+	return 0;
+}
+static inline int arch_get_random_seed_long(unsigned long *v)
+{
+	return 0;
+}
+static inline int arch_get_random_seed_int(unsigned int *v)
+{
+	return 0;
+}
+static inline int arch_has_random_seed(void)
+{
+	return 0;
+}
 #endif
 
 /* Pseudo random number generator from numerical recipes. */
@@ -98,5 +113,3 @@ static inline u32 next_pseudo_random32(u32 seed)
 }
 
 #endif /* _LINUX_RANDOM_H */
-
-void erandom_get_random_bytes(char *buf, size_t count);
