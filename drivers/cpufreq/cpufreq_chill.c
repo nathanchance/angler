@@ -18,7 +18,7 @@
 
 /* Chill version macros */
 #define CHILL_VERSION_MAJOR			(2)
-#define CHILL_VERSION_MINOR			(1)
+#define CHILL_VERSION_MINOR			(2)
 
 /* Chill governor macros */
 #define DEF_FREQUENCY_UP_THRESHOLD		(85)
@@ -31,7 +31,7 @@
 
 static DEFINE_PER_CPU(struct cs_cpu_dbs_info_s, cs_cpu_dbs_info);
 
-static unsigned int boost_counter = 0;
+unsigned int boost_counter = 0;
 
 static inline unsigned int get_freq_target(struct cs_dbs_tuners *cs_tuners,
 					   struct cpufreq_policy *policy)
@@ -126,13 +126,15 @@ static void cs_check_cpu(int cpu, unsigned int load)
 		/* Boost if count is reached, otherwise increase freq */
 		if (cs_tuners->boost_enabled && boost_counter >= cs_tuners->boost_count)
 			dbs_info->requested_freq = policy->max;
+			boost_counter = 0;
 		else
 			dbs_info->requested_freq += get_freq_target(cs_tuners, policy);
 
  		/* Make sure max hasn't been reached, otherwise increment boost_counter */
-		if (dbs_info->requested_freq >= policy->max)
+		if (dbs_info->requested_freq >= policy->max) {
 			dbs_info->requested_freq = policy->max;
-		else
+			boost_counter = 0;
+		} else
 			boost_counter++;
 
 		__cpufreq_driver_target(policy, dbs_info->requested_freq,
