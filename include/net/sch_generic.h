@@ -472,6 +472,15 @@ static inline int qdisc_enqueue_root(struct sk_buff *skb, struct Qdisc *sch)
 	return qdisc_enqueue(skb, sch) & NET_XMIT_MASK;
 }
 
+static inline void qstats_drop_inc(struct gnet_stats_queue *qstats)
+{
+        qstats->drops++;
+}
+
+static inline void qdisc_qstats_drop(struct Qdisc *sch)
+{
+        qstats_drop_inc(&sch->qstats);
+}
 
 static inline void bstats_update(struct gnet_stats_basic_packed *bstats,
 				 const struct sk_buff *skb)
@@ -484,6 +493,12 @@ static inline void qdisc_bstats_update(struct Qdisc *sch,
 				       const struct sk_buff *skb)
 {
 	bstats_update(&sch->bstats, skb);
+}
+
+static inline void qdisc_qstats_backlog_inc(struct Qdisc *sch,
+                                            const struct sk_buff *skb)
+{
+        sch->qstats.backlog += qdisc_pkt_len(skb);
 }
 
 static inline int __qdisc_enqueue_tail(struct sk_buff *skb, struct Qdisc *sch,
