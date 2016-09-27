@@ -3841,6 +3841,62 @@ static int _sha256_update(struct ahash_request  *req)
 	return _sha_update(req, SHA256_BLOCK_SIZE);
 }
 
+static int _sha_finup(struct ahash_request *req, uint32_t sha_block_size)
+{
+	struct qcrypto_sha_ctx *sha_ctx = crypto_tfm_ctx(req->base.tfm);
+	struct crypto_priv *cp = sha_ctx->cp;
+	struct qcrypto_sha_req_ctx *rctx = ahash_request_ctx(req);
+	int ret = 0;
+	uint8_t  *staging;
+	uint32_t num_sg = 0;
+
+	rctx->last_blk = 1;
+	/* save the original req structure fields*/
+	rctx->src = req->src;
+	rctx->orig_src = req->src;
+	rctx->nbytes = req->nbytes;
+	staging = (uint8_t *)ALIGN(((uintptr_t)rctx->staging_dmabuf),
+							L1_CACHE_BYTES);
+	memcpy(staging, rctx->trailing_buf, rctx->trailing_buf_len);
+	rctx->data = NULL;
+	if (cp->ce_support.aligned_only)  {
+		rctx->data = kzalloc((req->nbytes + rctx->trailing_buf_len +
+							64), GFP_ATOMIC);
+		if (rctx->data == NULL)
+			return -ENOMEM;
+		if (rctx->trailing_buf_len)
+			memcpy(rctx->data, staging,
+				rctx->trailing_buf_len);
+		num_sg = qcrypto_count_sg(req->src, req->nbytes);
+		qcrypto_sg_copy_to_buffer(req->src, num_sg,
+			rctx->data + rctx->trailing_buf_len, req->nbytes);
+		sg_set_buf(&rctx->sg[0], rctx->data,
+			(rctx->trailing_buf_len + req->src->length));
+		sg_mark_end(&rctx->sg[0]);
+	} else if (rctx->trailing_buf_len) {
+		sg_set_buf(&rctx->sg[0], staging, rctx->trailing_buf_len);
+		sg_mark_end(&rctx->sg[0]);
+		if (req->nbytes) {
+			sg_unmark_end(&rctx->sg[0]);
+			sg_chain(&rctx->sg[0], 2, req->src);
+		}
+	}
+	req->src = rctx->sg;
+	req->nbytes = rctx->trailing_buf_len + req->nbytes;
+	ret =  _qcrypto_queue_req(cp, sha_ctx->pengine, &req->base);
+
+	return ret;
+}
+static int _sha1_finup(struct ahash_request  *req)
+{
+	return _sha_finup(req, SHA1_BLOCK_SIZE);
+}
+
+static int _sha256_finup(struct ahash_request  *req)
+{
+	return _sha_finup(req, SHA256_BLOCK_SIZE);
+}
+
 static int _sha_final(struct ahash_request *req, uint32_t sha_block_size)
 {
 	struct qcrypto_sha_ctx *sha_ctx = crypto_tfm_ctx(req->base.tfm);
@@ -4137,7 +4193,7 @@ static int _sha_hmac_outer_hash(struct ahash_request *req,
 }
 
 static int _sha_hmac_inner_hash(struct ahash_request *req,
-			uint32_t sha_digest_size, uint32_t sha_block_size)
+		uint32_t sha_digest_size, uint32_t sha_block_size, bool data)
 {
 	struct qcrypto_sha_ctx *sha_ctx = crypto_tfm_ctx(req->base.tfm);
 	struct ahash_request *areq = sha_ctx->ahash_req;
@@ -4151,9 +4207,16 @@ static int _sha_hmac_inner_hash(struct ahash_request *req,
 	memcpy(staging, rctx->trailing_buf, rctx->trailing_buf_len);
 	sg_set_buf(&rctx->sg[0], staging, rctx->trailing_buf_len);
 	sg_mark_end(&rctx->sg[0]);
+	if (data) {
+		if (req->nbytes) {
+			sg_unmark_end(&rctx->sg[0]);
+			sg_chain(&rctx->sg[0], 2, req->src);
+		}
+	};
 
 	ahash_request_set_crypt(areq, &rctx->sg[0], &rctx->digest[0],
-						rctx->trailing_buf_len);
+			(data) ? rctx->trailing_buf_len + req->nbytes :
+					rctx->trailing_buf_len);
 	rctx->last_blk = 1;
 	ret =  _qcrypto_queue_req(cp, sha_ctx->pengine, &areq->base);
 
@@ -4176,7 +4239,7 @@ static int _sha1_hmac_final(struct ahash_request *req)
 		return _sha_final(req, SHA1_BLOCK_SIZE);
 	else {
 		ret = _sha_hmac_inner_hash(req, SHA1_DIGEST_SIZE,
-							SHA1_BLOCK_SIZE);
+						SHA1_BLOCK_SIZE, false);
 		if (ret)
 			return ret;
 		return _sha_hmac_outer_hash(req, SHA1_DIGEST_SIZE,
@@ -4194,7 +4257,7 @@ static int _sha256_hmac_final(struct ahash_request *req)
 		return _sha_final(req, SHA256_BLOCK_SIZE);
 	else {
 		ret = _sha_hmac_inner_hash(req, SHA256_DIGEST_SIZE,
-							SHA256_BLOCK_SIZE);
+						SHA256_BLOCK_SIZE, false);
 		if (ret)
 			return ret;
 		return _sha_hmac_outer_hash(req, SHA256_DIGEST_SIZE,
@@ -4203,7 +4266,43 @@ static int _sha256_hmac_final(struct ahash_request *req)
 	return 0;
 }
 
+static int _sha1_hmac_finup(struct ahash_request *req)
+{
+	struct qcrypto_sha_ctx *sha_ctx = crypto_tfm_ctx(req->base.tfm);
+	struct crypto_priv *cp = sha_ctx->cp;
+	int ret = 0;
 
+	if (cp->ce_support.sha_hmac)
+		return _sha_finup(req, SHA1_BLOCK_SIZE);
+	ret = _sha_hmac_inner_hash(req, SHA1_DIGEST_SIZE,
+						SHA1_BLOCK_SIZE, true);
+	if (ret)
+		return ret;
+	return _sha_hmac_outer_hash(req, SHA1_DIGEST_SIZE, SHA1_BLOCK_SIZE);
+}
+
+static int _sha256_hmac_finup(struct ahash_request *req)
+{
+	struct qcrypto_sha_ctx *sha_ctx = crypto_tfm_ctx(req->base.tfm);
+	struct crypto_priv *cp = sha_ctx->cp;
+	int ret = 0;
+
+	if (cp->ce_support.sha_hmac)
+		return _sha_finup(req, SHA256_BLOCK_SIZE);
+	ret = _sha_hmac_inner_hash(req, SHA256_DIGEST_SIZE,
+						SHA256_BLOCK_SIZE, true);
+	if (ret)
+		return ret;
+	return _sha_hmac_outer_hash(req, SHA256_DIGEST_SIZE,
+							SHA256_BLOCK_SIZE);
+}
+
+/*
+ * Note, sha1_hmac_digest does not support device that does not
+ * do hmac operation in CE (ce_support.sha_hmac is false).
+ * Since in Linux 3.10 or later, those devices (mainly equipped with crypto 3)
+ * are not used, we won't fix it here.
+ */
 static int _sha1_hmac_digest(struct ahash_request *req)
 {
 	struct qcrypto_sha_ctx *sha_ctx = crypto_tfm_ctx(req->base.tfm);
@@ -4222,6 +4321,9 @@ static int _sha1_hmac_digest(struct ahash_request *req)
 	return _sha_digest(req);
 }
 
+/*
+ * Same note as previous note in _sha1_hmac_digest. We won't fix the issue here.
+ */
 static int _sha256_hmac_digest(struct ahash_request *req)
 {
 	struct qcrypto_sha_ctx *sha_ctx = crypto_tfm_ctx(req->base.tfm);
@@ -4427,6 +4529,7 @@ static struct ahash_alg _qcrypto_ahash_algos[] = {
 		.init		=	_sha1_init,
 		.update		=	_sha1_update,
 		.final		=	_sha1_final,
+		.finup		=	_sha1_finup,
 		.export		=	_sha1_export,
 		.import		=	_sha1_import,
 		.digest		=	_sha1_digest,
@@ -4454,6 +4557,7 @@ static struct ahash_alg _qcrypto_ahash_algos[] = {
 		.init		=	_sha256_init,
 		.update		=	_sha256_update,
 		.final		=	_sha256_final,
+		.finup		=	_sha256_finup,
 		.export		=	_sha256_export,
 		.import		=	_sha256_import,
 		.digest		=	_sha256_digest,
@@ -4484,6 +4588,7 @@ static struct ahash_alg _qcrypto_sha_hmac_algos[] = {
 		.init		=	_sha1_hmac_init,
 		.update		=	_sha1_hmac_update,
 		.final		=	_sha1_hmac_final,
+		.finup		=	_sha1_hmac_finup,
 		.export		=	_sha1_hmac_export,
 		.import		=	_sha1_hmac_import,
 		.digest		=	_sha1_hmac_digest,
@@ -4512,6 +4617,7 @@ static struct ahash_alg _qcrypto_sha_hmac_algos[] = {
 		.init		=	_sha256_hmac_init,
 		.update		=	_sha256_hmac_update,
 		.final		=	_sha256_hmac_final,
+		.finup		=	_sha256_hmac_finup,
 		.export		=	_sha256_hmac_export,
 		.import		=	_sha256_hmac_import,
 		.digest		=	_sha256_hmac_digest,
