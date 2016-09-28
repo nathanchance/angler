@@ -1687,7 +1687,11 @@ static long audio_aio_ioctl(struct file *file, unsigned int cmd,
 				__func__);
 			rc = -EFAULT;
 		} else {
+			mutex_lock(&audio->read_lock);
+			mutex_lock(&audio->write_lock);
 			rc = audio_aio_ion_add(audio, &info);
+			mutex_unlock(&audio->write_lock);
+			mutex_unlock(&audio->read_lock);
 		}
 		mutex_unlock(&audio->write_lock);
 		mutex_unlock(&audio->read_lock);
@@ -1706,7 +1710,11 @@ static long audio_aio_ioctl(struct file *file, unsigned int cmd,
 				__func__);
 			rc = -EFAULT;
 		} else {
+			mutex_lock(&audio->read_lock);
+			mutex_lock(&audio->write_lock);
 			rc = audio_aio_ion_remove(audio, &info);
+			mutex_unlock(&audio->write_lock);
+			mutex_unlock(&audio->read_lock);
 		}
 		mutex_unlock(&audio->write_lock);
 		mutex_unlock(&audio->read_lock);
@@ -2012,7 +2020,11 @@ static long audio_aio_compat_ioctl(struct file *file, unsigned int cmd,
 		} else {
 			info.fd = info_32.fd;
 			info.vaddr = compat_ptr(info_32.vaddr);
+			mutex_lock(&audio->read_lock);
+			mutex_lock(&audio->write_lock);
 			rc = audio_aio_ion_add(audio, &info);
+			mutex_unlock(&audio->write_lock);
+			mutex_unlock(&audio->read_lock);
 		}
 		mutex_unlock(&audio->write_lock);
 		mutex_unlock(&audio->read_lock);
@@ -2033,7 +2045,11 @@ static long audio_aio_compat_ioctl(struct file *file, unsigned int cmd,
 		} else {
 			info.fd = info_32.fd;
 			info.vaddr = compat_ptr(info_32.vaddr);
+			mutex_lock(&audio->read_lock);
+			mutex_lock(&audio->write_lock);
 			rc = audio_aio_ion_remove(audio, &info);
+			mutex_unlock(&audio->write_lock);
+			mutex_unlock(&audio->read_lock);
 		}
 		mutex_unlock(&audio->write_lock);
 		mutex_unlock(&audio->read_lock);
