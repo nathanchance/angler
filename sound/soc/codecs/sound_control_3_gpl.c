@@ -11,6 +11,8 @@
  * max98925 speaker gain and cleanup by flar2
  * analog headphone gain by flar2 with thanks to chdloc
  *
+ * added high performance mode toggle
+ *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
  * may be copied, distributed, and modified under those terms.
@@ -34,12 +36,30 @@
 
 extern struct snd_soc_codec *fauxsound_codec_ptr;
 
+extern int high_perf_mode;
+
 extern int speaker_gain_lval;
 extern int speaker_gain_rval;
 
 unsigned int tomtom_read(struct snd_soc_codec *codec, unsigned int reg);
 int tomtom_write(struct snd_soc_codec *codec, unsigned int reg,
 		unsigned int value);
+
+static ssize_t hph_perf_show(struct kobject *kobj,
+		struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", high_perf_mode);
+}
+
+static ssize_t hph_perf_store(struct kobject *kobj,
+		struct kobj_attribute *attr, const char *buf, size_t count)
+{
+	if (buf[0] >= '0' && buf[0] <= '1' && buf[1] == '\n')
+		if (high_perf_mode != buf[0] - '0')
+			high_perf_mode = buf[0] - '0';
+
+	return count;
+}
 
 static ssize_t cam_mic_gain_show(struct kobject *kobj,
 		struct kobj_attribute *attr, char *buf)
@@ -173,6 +193,12 @@ static ssize_t headphone_gain_pa_store(struct kobject *kobj,
 	return count;
 }
 
+static struct kobj_attribute high_performance_mode_attribute =
+	__ATTR(highperf_enabled,
+		0666,
+		hph_perf_show,
+		hph_perf_store);
+
 static struct kobj_attribute cam_mic_gain_attribute =
 	__ATTR(cam_mic_gain,
 		0666,
@@ -205,6 +231,7 @@ static struct kobj_attribute headphone_pa_gain_attribute =
 
 static struct attribute *sound_control_attrs[] =
 	{
+		&high_performance_mode_attribute.attr,
 		&cam_mic_gain_attribute.attr,
 		&mic_gain_attribute.attr,
 		&speaker_gain_attribute.attr,
