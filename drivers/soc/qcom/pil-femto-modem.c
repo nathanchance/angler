@@ -912,7 +912,7 @@ static int pil_femto_modem_driver_probe(
 
 	/* This controls the loading of the MBA firmware to Q6[0] */
 	q6 = pil_q6v5_init(pdev);
-	if (IS_ERR(q6))
+	if (q6 == NULL || IS_ERR(q6))
 		return PTR_ERR(q6);
 	drv->q6 = q6;
 
