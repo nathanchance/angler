@@ -628,7 +628,7 @@ retry:
 		sg = sg_next(sg);
 	}
 	buffer->priv_virt = info;
-	dev_dbg(sheap->dev, "Allocate buffer %p\n", buffer);
+	dev_dbg(sheap->dev, "Allocate buffer %pK\n", buffer);
 	return info;
 
 err2:
