@@ -19,6 +19,13 @@ LIBGCC 		:= $(shell $(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
 
 KBUILD_DEFCONFIG := defconfig
 
+# Optimize for big.LITTLE configuration
+ARM_ARCH_OPT	:= -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53
+
+# If for some reason compiling with a toolchain that supports neither mcpu or
+# mtune (in which case, wtf?), don't tune at all (march can break assembly)
+KBUILD_CFLAGS	+= $(call cc-option,$(ARM_ARCH_OPT),)
+
 KBUILD_CFLAGS	+= -mgeneral-regs-only
 KBUILD_CFLAGS	+= -fno-pic
 ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
