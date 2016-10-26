@@ -43,7 +43,7 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 	struct zz_dbs_tuners *zz_tuners = dbs_data->tuners;
 	struct cpufreq_policy *policy;
 	unsigned int sampling_rate;
-	unsigned int max_load = 0;
+	unsigned int max_load = 0, deferred_periods = UINT_MAX;
 	unsigned int ignore_nice;
 	unsigned int j;
 
@@ -142,6 +142,10 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 		 */
 		if (unlikely(wall_time > (2 * sampling_rate))) {
 			unsigned int busy = wall_time - idle_time;
+			unsigned int periods = wall_time / sampling_rate;
+
+			if (periods < deferred_periods)
+				deferred_periods = periods;
 
 			if (busy > sampling_rate)
 				load = 100;
@@ -154,6 +158,7 @@ void dbs_check_cpu(struct dbs_data *dbs_data, int cpu)
 		if (load > max_load)
 			max_load = load;
 	}
+	cdbs->deferred_periods = deferred_periods;
 
 	dbs_data->cdata->gov_check_cpu(cpu, max_load);
 }
