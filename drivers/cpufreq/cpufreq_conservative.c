@@ -62,6 +62,16 @@ static void cs_check_cpu(int cpu, unsigned int load)
 	if (cs_tuners->freq_step == 0)
 		return;
 
+	if (dbs_info->cdbs.deferred_periods < UINT_MAX) {
+		unsigned int freq_target = dbs_info->cdbs.deferred_periods *
+				get_freq_target(cs_tuners->freq_step, policy);
+		if (dbs_info->requested_freq > freq_target)
+			dbs_info->requested_freq -= freq_target;
+		else
+			dbs_info->requested_freq = policy->min;
+		dbs_info->cdbs.deferred_periods = UINT_MAX;
+	}
+
 	if (jiffies_to_msecs(jiffies - touch_jiffies) >
 				cs_tuners->touch_load_duration)
 		touch = true;
