@@ -4729,7 +4729,9 @@ int try_to_unmap_ksm(struct page *page,
 		return SWAP_FAIL;
 
 	if (target_vma) {
+#ifndef CONFIG_ARM64
 		unsigned long address = vma_address(page, target_vma);
+#endif
 		ret = try_to_unmap_one(page, target_vma, address, flags);
 		goto out;
 	}
