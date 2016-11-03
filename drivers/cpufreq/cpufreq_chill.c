@@ -18,7 +18,7 @@
 
 /* Chill version macros */
 #define CHILL_VERSION_MAJOR			(2)
-#define CHILL_VERSION_MINOR			(6)
+#define CHILL_VERSION_MINOR			(7)
 
 /* Chill governor macros */
 #define DEF_FREQUENCY_UP_THRESHOLD		(85)
@@ -344,10 +344,7 @@ static ssize_t store_boost_count(struct dbs_data *dbs_data, const char *buf,
 	if (ret != 1)
 		return -EINVAL;
 
-	if (input >= 5)
-		input = 5;
-
-	if (input = 0)
+	if (input < 1)
 		input = 0;
 
 	cs_tuners->boost_count = input;
