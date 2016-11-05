@@ -150,7 +150,7 @@ void fixup_perms_recursive(struct dentry *dentry, const char* name, size_t len) 
 		}
 	} else 	if (descendant_may_need_fixup(info->perm)) {
 		mutex_lock(&dentry->d_inode->i_mutex);
-		list_for_each_entry(child, &dentry->d_subdirs, d_u.d_child) {
+		list_for_each_entry(child, &dentry->d_subdirs, d_child) {
 				fixup_perms_recursive(child, name, len);
 		}
 		mutex_unlock(&dentry->d_inode->i_mutex);
