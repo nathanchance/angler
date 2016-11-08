@@ -517,19 +517,20 @@ static void wakeup_source_activate(struct wakeup_source *ws)
 {
 	unsigned int cec;
 
-	if (((!enable_wlan_rx_wake_ws && !strcmp(ws->name, "wlan_rx_wake")) ||
+	if (((!enable_wlan_rx_wake_ws &&
+			!strncmp(ws->name, "wlan_rx_wake", 12)) ||
 		(!enable_si_ws &&
-			!strcmp(ws->name, "sensor_ind")) ||
+			!strncmp(ws->name, "sensor_ind", 10)) ||
 		(!enable_msm_hsic_ws &&
-			!strcmp(ws->name, "msm_hsic_host")) ||
+			!strncmp(ws->name, "msm_hsic_host", 13)) ||
 		(!enable_wlan_ctrl_wake_ws &&
-			!strcmp(ws->name, "wlan_ctrl_wake")) ||
+			!strncmp(ws->name, "wlan_ctrl_wake", 14)) ||
 		(!enable_wlan_wake_ws &&
-			!strcmp(ws->name, "wlan_wake")) ||
+			!strncmp(ws->name, "wlan_wake", 9)) ||
 		(!enable_bluedroid_timer_ws &&
-			!strcmp(ws->name, "bluedroid_timer")) ||
+			!strncmp(ws->name, "bluedroid_timer", 15)) ||
 		(!enable_ipa_ws &&
-			!strcmp(ws->name, "IPA_WS")))) {
+			!strncmp(ws->name, "IPA_WS", 6)))) {
 		/*
 		 * let's try and deactivate this wakeup source since the user
 		 * clearly doesn't want it. The user is responsible for any
