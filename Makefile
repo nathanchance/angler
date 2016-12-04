@@ -326,8 +326,13 @@ include $(srctree)/scripts/Kbuild.include
 # Make variables (CC, etc...)
 
 AS		= $(CROSS_COMPILE)as
-LD		= $(CROSS_COMPILE)ld.bfd
+LD		= $(CROSS_COMPILE)ld
+LD		+= -O3 --strip-debug
 CC		= $(CROSS_COMPILE)gcc
+CC		+= -O3 -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53
+CC		+= -fmodulo-sched -fmodulo-sched-allow-regmoves
+CC		+= -fgraphite-identity -floop-block -floop-interchange -floop-strip-mine
+CC		+= -ftree-loop-linear -ftree-loop-distribution
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
 NM		= $(CROSS_COMPILE)nm
@@ -341,34 +346,15 @@ DEPMOD		= /sbin/depmod
 PERL		= perl
 CHECK		= sparse
 
-# fall back to -march=armv8-a+crypto in case the compiler isn't compatible
-# with -mcpu and -mtune
-ARM_ARCH_OPT := -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53
-GEN_OPT_FLAGS := $(call cc-option,$(ARM_ARCH_OPT),-march=armv8-a+crypto) \
- -g0 \
- -DNDEBUG \
- -fomit-frame-pointer \
- -fmodulo-sched \
- -fmodulo-sched-allow-regmoves \
- -fivopts
-
-ABYSS_FLAGS 	:= $(GEN_OPT_FLAGS) -O3 -pipe \
-		   -ffast-math -fsingle-precision-constant -fsched-spec-load \
-		   -fpredictive-commoning -fgcse-after-reload -fgcse-sm \
-		   -fno-pic -mno-android
-
-# Use the wrapper for the compiler.  This wrapper scans for new
-# warnings and causes the build to stop upon encountering them.
-# CC		= $(srctree)/scripts/gcc-wrapper.py $(REAL_CC)
-
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_MODULE   = -DMODULE $(ABYSS_FLAGS)
-AFLAGS_MODULE   = -DMODULE $(ABYSS_FLAGS)
+CFLAGS_MODULE   =
+AFLAGS_MODULE   =
 LDFLAGS_MODULE  = --strip-debug
-CFLAGS_KERNEL	= $(ABYSS_FLAGS)
-AFLAGS_KERNEL	= $(ABYSS_FLAGS)
+CFLAGS_KERNEL	=
+AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
+
 
 # Use USERINCLUDE when you must reference the UAPI directories only.
 USERINCLUDE    := \
@@ -394,8 +380,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks \
-		   -std=gnu89 \
-                   $(ABYSS_FLAGS)
+		   -std=gnu89
 
 # Thanks gcc!
 KBUILD_CFLAGS   += -Wno-trigraphs -Wno-unused-label -Wno-array-bounds -Wno-memset-transposed-args \
@@ -404,11 +389,11 @@ KBUILD_CFLAGS   += -Wno-trigraphs -Wno-unused-label -Wno-array-bounds -Wno-memse
                    -Wno-misleading-indentation -Wno-bool-compare -Wno-int-conversion \
                    -Wno-discarded-qualifiers -Wno-tautological-compare -Wno-incompatible-pointer-types
 
-KBUILD_AFLAGS_KERNEL := $(ABYSS_FLAGS)
-KBUILD_CFLAGS_KERNEL := $(ABYSS_FLAGS)
+KBUILD_AFLAGS_KERNEL :=
+KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
-KBUILD_AFLAGS_MODULE  := -DMODULE $(ABYSS_FLAGS)
-KBUILD_CFLAGS_MODULE  := -DMODULE $(ABYSS_FLAGS)
+KBUILD_AFLAGS_MODULE  := -DMODULE
+KBUILD_CFLAGS_MODULE  := -DMODULE
 KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
 
 # Read KERNELRELEASE from include/config/kernel.release (if it exists)
@@ -602,9 +587,8 @@ all: vmlinux
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os $(call cc-disable-warning,maybe-uninitialized,)
-# O3 flag is called earlier, no need to call again here
-# else
-# KBUILD_CFLAGS	+= -O3
+else
+KBUILD_CFLAGS	+= -O3
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
@@ -697,7 +681,7 @@ NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
 CHECKFLAGS     += $(NOSTDINC_FLAGS)
 
 # warn about C99 declaration after statement
-# KBUILD_CFLAGS += $(call cc-option,-Wdeclaration-after-statement,)
+KBUILD_CFLAGS += $(call cc-option,-Wdeclaration-after-statement,)
 
 # disable pointer signed / unsigned warnings in gcc 4.0
 KBUILD_CFLAGS += $(call cc-disable-warning, pointer-sign)
