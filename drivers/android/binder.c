@@ -1548,11 +1548,12 @@ static void binder_transaction(struct binder_proc *proc,
 		goto err_alloc_t_failed;
 	}
 	binder_stats_created(BINDER_STAT_TRANSACTION);
-
-	tcomplete = kzalloc_preempt_disabled(sizeof(*tcomplete));
-	if (tcomplete == NULL) {
-		return_error = BR_FAILED_REPLY;
-		goto err_alloc_tcomplete_failed;
+	if (reply || (tr->flags & TF_ONE_WAY)) {
+		tcomplete = kzalloc_preempt_disabled(sizeof(*tcomplete));
+		if (tcomplete == NULL) {
+			return_error = BR_FAILED_REPLY;
+			goto err_alloc_tcomplete_failed;
+		}
 	}
 	binder_stats_created(BINDER_STAT_TRANSACTION_COMPLETE);
 
@@ -1817,8 +1818,10 @@ static void binder_transaction(struct binder_proc *proc,
 	}
 	t->work.type = BINDER_WORK_TRANSACTION;
 	list_add_tail(&t->work.entry, target_list);
-	tcomplete->type = BINDER_WORK_TRANSACTION_COMPLETE;
-	list_add_tail(&tcomplete->entry, &thread->todo);
+	if (reply || (tr->flags & TF_ONE_WAY)) {
+		tcomplete->type = BINDER_WORK_TRANSACTION_COMPLETE;
+		list_add_tail(&tcomplete->entry, &thread->todo);
+	}
 	if (target_wait) {
 		if (reply || !(t->flags & TF_ONE_WAY)) {
 			wake_up_interruptible_sync(target_wait);
