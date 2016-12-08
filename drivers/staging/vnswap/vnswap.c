@@ -122,7 +122,7 @@ int vnswap_init_backing_storage(void)
 		pr_err("%s %d: filp_open failed" \
 				"(backing_storage_file, error, " \
 				"backing_storage_filename)" \
-				" = (0x%08x, 0x%08x, %s)\n",
+				" = (%lu, %d, %s)\n",
 				__func__, __LINE__,
 				(unsigned long) backing_storage_file,
 				ret, vnswap_device->backing_storage_filename);
@@ -217,7 +217,7 @@ int vnswap_init_backing_storage(void)
 		first_block = bmap(inode, probe_block);
 		if (first_block == 0) {
 			pr_err("%s %d: backing_storage file has holes." \
-					"(probe_block, first_block) = (%llu,%llu)\n",
+					"(probe_block, first_block) = (%lu,%lu)\n",
 					__func__, __LINE__,
 					probe_block, first_block);
 			ret = -EINVAL;
@@ -780,7 +780,7 @@ void __vnswap_make_request(struct vnswap *vnswap,
 			vnswap_bio_invalid_num);
 		pr_err("%s %d: invalid offset. " \
 				"(bio->bi_sector, index, offset," \
-				"vnswap_bio_invalid_num) = (%llu, %d, %d, %d)\n",
+				"vnswap_bio_invalid_num) = (%lu, %d, %d, %d)\n",
 				__func__, __LINE__, bio->bi_sector,
 				index, offset,
 				vnswap_device->stats.
@@ -889,7 +889,7 @@ void vnswap_make_request(struct request_queue *queue, struct bio *bio)
 		pr_err("%s %d: invalid io request. " \
 				"(bio->bi_sector, bio->bi_size," \
 				"vnswap->disksize, vnswap_bio_invalid_num) = " \
-				"(%llu, %d, %llu, %d)\n",
+				"(%lu, %d, %llu, %d)\n",
 				__func__, __LINE__,
 				bio->bi_sector, bio->bi_size,
 				vnswap->disksize,
