@@ -72,7 +72,7 @@ static void cs_check_cpu(int cpu, unsigned int load)
 		dbs_info->cdbs.deferred_periods = UINT_MAX;
 	}
 
-	if (jiffies_to_msecs(jiffies - touch_jiffies) >
+	if (jiffies_to_msecs(jiffies - touch_jiffies) <
 				cs_tuners->touch_load_duration)
 		touch = true;
 
