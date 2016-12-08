@@ -124,7 +124,7 @@ int vnswap_init_backing_storage(void)
 				"backing_storage_filename)" \
 				" = (0x%08x, 0x%08x, %s)\n",
 				__func__, __LINE__,
-				(unsigned int) backing_storage_file,
+				(unsigned long) backing_storage_file,
 				ret, vnswap_device->backing_storage_filename);
 		goto error;
 	} else {
@@ -134,7 +134,7 @@ int vnswap_init_backing_storage(void)
 				"(backing_storage_file, error, backing_storage_filename)"
 				"= (0x%08x, 0x%08x, %s)\n",
 				__func__, __LINE__,
-				(unsigned int) backing_storage_file,
+				(unsigned long) backing_storage_file,
 				ret, vnswap_device->backing_storage_filename);
 	}
 
