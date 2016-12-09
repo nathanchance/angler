@@ -137,7 +137,7 @@ static void replenish_dl_entity(struct sched_dl_entity *dl_se)
 
 		if (!lag_once) {
 			lag_once = true;
-			printk_sched("sched: DL replenish lagged to much\n");
+			printk_deferred("sched: DL replenish lagged to much\n");
 		}
 		dl_se->deadline = rq_clock(rq) + dl_se->dl_deadline;
 		dl_se->runtime = dl_se->dl_runtime;
@@ -484,7 +484,7 @@ static void enqueue_task_dl(struct rq *rq, struct task_struct *p, int flags)
 		return;
 
 	enqueue_dl_entity(&p->dl, flags);
-	inc_nr_running(rq);
+	add_nr_running(rq, 1);
 }
 
 static void __dequeue_task_dl(struct rq *rq, struct task_struct *p, int flags)
@@ -497,7 +497,7 @@ static void dequeue_task_dl(struct rq *rq, struct task_struct *p, int flags)
 	update_curr_dl(rq);
 	__dequeue_task_dl(rq, p, flags);
 
-	dec_nr_running(rq);
+	sub_nr_running(rq, 1);
 }
 
 /*
