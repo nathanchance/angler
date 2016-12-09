@@ -672,8 +672,10 @@ static ssize_t doubletap2wake_dump(struct device *dev,
 {
 	int input;
 	sscanf(buf, "%d ", &input);
-	if (input < 0 || input > 1)
-		input = 0;	
+	if (input < 0 || input > 2)
+		input = 0;
+	if (input == 2)
+		input = 1;
 
 	dt2w_switch = (input) ? true : false;		
 	
