@@ -208,6 +208,18 @@ static inline int has_pushable_dl_tasks(struct rq *rq)
 
 static int push_dl_task(struct rq *rq);
 
+static DEFINE_PER_CPU(struct callback_head, dl_balance_head);
+
+static void push_dl_tasks(struct rq *);
+
+static inline void queue_push_tasks(struct rq *rq)
+{
+        if (!has_pushable_dl_tasks(rq))
+                return;
+
+        queue_balance_callback(rq, &per_cpu(dl_balance_head, rq->cpu), push_dl_tasks);
+}
+
 #else
 
 static inline
@@ -754,7 +766,7 @@ void inc_dl_tasks(struct sched_dl_entity *dl_se, struct dl_rq *dl_rq)
 
 	WARN_ON(!dl_prio(prio));
 	dl_rq->dl_nr_running++;
-	inc_nr_running(rq_of_dl_rq(dl_rq));
+	add_nr_running(rq_of_dl_rq(dl_rq), 1);
 	inc_hmp_sched_stats_dl(rq_of_dl_rq(dl_rq), dl_task_of(dl_se));
 
 	inc_dl_deadline(dl_rq, deadline);
@@ -769,7 +781,7 @@ void dec_dl_tasks(struct sched_dl_entity *dl_se, struct dl_rq *dl_rq)
 	WARN_ON(!dl_prio(prio));
 	WARN_ON(!dl_rq->dl_nr_running);
 	dl_rq->dl_nr_running--;
-	dec_nr_running(rq_of_dl_rq(dl_rq));
+	sub_nr_running(rq_of_dl_rq(dl_rq), 1);
 	dec_hmp_sched_stats_dl(rq_of_dl_rq(dl_rq), dl_task_of(dl_se));
 
 	dec_dl_deadline(dl_rq, dl_se->deadline);
@@ -1060,9 +1072,7 @@ struct task_struct *pick_next_task_dl(struct rq *rq)
 		start_hrtick_dl(rq, p);
 #endif
 
-#ifdef CONFIG_SMP
-	rq->post_schedule = has_pushable_dl_tasks(rq);
-#endif /* CONFIG_SMP */
+	queue_push_tasks(rq);
 
 	return p;
 }
@@ -1482,11 +1492,6 @@ static void pre_schedule_dl(struct rq *rq, struct task_struct *prev)
 		pull_dl_task(rq);
 }
 
-static void post_schedule_dl(struct rq *rq)
-{
-	push_dl_tasks(rq);
-}
-
 /*
  * Since the task is not running and a reschedule is not going to happen
  * anytime soon on its runqueue, we try pushing it away now.
@@ -1704,7 +1709,6 @@ const struct sched_class dl_sched_class = {
 	.rq_online              = rq_online_dl,
 	.rq_offline             = rq_offline_dl,
 	.pre_schedule		= pre_schedule_dl,
-	.post_schedule		= post_schedule_dl,
 	.task_woken		= task_woken_dl,
 #endif
 
