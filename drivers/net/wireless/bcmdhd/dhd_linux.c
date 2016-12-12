@@ -4466,7 +4466,7 @@ dhd_allocate_if(dhd_pub_t *dhdpub, int ifidx, char *name,
 	dhd_if_t *ifp;
 
 	if((dhdinfo == NULL) || (ifidx >= DHD_MAX_IFS))
-		goto fail;
+		return NULL;
 	ifp = dhdinfo->iflist[ifidx];
 
 	if (ifp != NULL) {
@@ -9228,7 +9228,7 @@ dhd_dev_apf_enable_filter(struct net_device *ndev)
 {
 	dhd_info_t *dhd = DHD_DEV_INFO(ndev);
 	dhd_pub_t *dhdp = &dhd->pub;
-	int ret;
+	int ret = 0;
 
 	DHD_APF_LOCK(ndev);
 
@@ -9247,7 +9247,7 @@ dhd_dev_apf_disable_filter(struct net_device *ndev)
 {
 	dhd_info_t *dhd = DHD_DEV_INFO(ndev);
 	dhd_pub_t *dhdp = &dhd->pub;
-	int ret;
+	int ret = 0;
 
 	DHD_APF_LOCK(ndev);
 
@@ -9266,7 +9266,7 @@ dhd_dev_apf_delete_filter(struct net_device *ndev)
 {
 	dhd_info_t *dhd = DHD_DEV_INFO(ndev);
 	dhd_pub_t *dhdp = &dhd->pub;
-	int ret;
+	int ret = 0;
 
 	DHD_APF_LOCK(ndev);
 
