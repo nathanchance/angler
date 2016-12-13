@@ -177,27 +177,10 @@ config CPU_FREQ_DEFAULT_GOV_CHILL
 	  governor. If unsure have a look at the help section of the
 	  driver. Fallback governor will be the interactive governor.
 
-config CPU_FREQ_DEFAULT_GOV_BLU_ACTIVE
-	bool "blu_active"
-	select CPU_FREQ_GOV_BLU_ACTIVE
-	help
-	  Use the CPUFreq governor 'blu_active' as default. This allows
-	  you to get a full dynamic cpu frequency capable system by simply
-	  loading your cpufreq low-level hardware driver, using the
-	  'interactive' governor for latency-sensitive workloads.
-
 config CPU_FREQ_DEFAULT_GOV_DESPAIR
 	bool "despair"
 	select CPU_FREQ_GOV_DESPAIR
 	help
-
-config CPU_FREQ_DEFAULT_GOV_IRONACTIVE
-	bool "ironactive"
-	select CPU_FREQ_GOV_IRONACTIVE
-	help
-	  Use the CPUFreq governor 'ironactive' as default. This cpugovernor
-	  is based on the 'interactive' governor with many changes made by
-	  CAF.
 
 config CPU_FREQ_DEFAULT_GOV_FLASH
         bool "flash"
@@ -373,41 +356,9 @@ config CPU_FREQ_GOV_BIOSHOCK
 	help
 	  'bioshock' - More aggressive version of conservative
 	  
-config CPU_FREQ_GOV_BLU_ACTIVE
-	tristate "'blu_active' cpufreq policy governor"
-	help
-	  'blu_active' - This driver adds a dynamic cpufreq policy governor
-	  designed for latency-sensitive workloads.
-
-	  This governor attempts to reduce the latency of clock
-	  increases so that the system is more responsive to
-	  interactive workloads.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called cpufreq_blu_active.
-
-	  If in doubt, say N.
-
 config CPU_FREQ_GOV_DESPAIR
 	tristate "'despair' cpufreq governor"
 	depends on CPU_FREQ
-
-config CPU_FREQ_GOV_IRONACTIVE
-	tristate "'ironactive' cpufreq policy governor"
-	help
-	  'ironactive' - This driver adds a dynamic cpufreq policy governor
-	  designed for latency-sensitive workloads.
-
-	  This governor attempts to reduce the latency of clock
-	  increases so that the system is more responsive to
-	  ironactive workloads. Based on 'interactive' governor
-	  with many changes compared to our stock 'interactive'
-	  governor we have from samsung. Mainly CAF changes.
-
-	  To compile this driver as a module, choose M here: the
-	  module will be called cpufreq_ironactive.
-
-	  If in doubt, say N.
 
 config CPU_FREQ_GOV_FLASH
         tristate "'flash' cpufreq policy governor"
