@@ -16,10 +16,16 @@
 #include <linux/pagemap.h>
 #include <linux/quotaops.h>
 #include <linux/backing-dev.h>
+#include <linux/fsync.h>
 #include "internal.h"
 
 bool fsync_enabled = true;
-module_param(fsync_enabled, bool, 0755);
+module_param(fsync_enabled, bool, 0644);
+
+void set_fsync(bool enable)
+{
+        fsync_enabled = enable;
+}
 
 #define VALID_FLAGS (SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE| \
 			SYNC_FILE_RANGE_WAIT_AFTER)
@@ -212,7 +218,7 @@ int vfs_fsync(struct file *file, int datasync)
 {
 	if (!fsync_enabled)
 		return 0;
-		
+
 	return vfs_fsync_range(file, 0, LLONG_MAX, datasync);
 }
 EXPORT_SYMBOL(vfs_fsync);
@@ -221,7 +227,7 @@ static int do_fsync(unsigned int fd, int datasync)
 {
 	struct fd f = fdget(fd);
 	int ret = -EBADF;
-	
+
 	if (!fsync_enabled)
 		return 0;
 
