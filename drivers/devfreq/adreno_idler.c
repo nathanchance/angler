@@ -65,11 +65,11 @@ static unsigned int idlecount = 0;
 int adreno_idler(struct devfreq_dev_status stats, struct devfreq *devfreq,
 		 unsigned long *freq)
 {
-	if (!adreno_idler_active)
-		return 0;
-
 	/* Boolean to let us know if the display is on*/
 	bool display_on = is_display_on();
+
+	if (!adreno_idler_active)
+		return 0;
 
 	if (stats.busy_time < idleworkload) {
 		/* busy_time >= idleworkload should be considered as a non-idle workload. */
