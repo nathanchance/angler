@@ -333,18 +333,6 @@ void fsnotify_clear_marks_by_group(struct fsnotify_group *group)
 	fsnotify_clear_marks_by_group_flags(group, (unsigned int)-1);
 }
 
-void fsnotify_duplicate_mark(struct fsnotify_mark *new, struct fsnotify_mark *old)
-{
-	assert_spin_locked(&old->lock);
-	new->i.inode = old->i.inode;
-	new->m.mnt = old->m.mnt;
-	if (old->group)
-		fsnotify_get_group(old->group);
-	new->group = old->group;
-	new->mask = old->mask;
-	new->free_mark = old->free_mark;
-}
-
 /*
  * Nothing fancy, just initialize lists and locks and counters.
  */
