@@ -2353,6 +2353,7 @@ static ssize_t run_store(struct kobject *kobj, struct kobj_attribute *attr,
 				count = err;
 			}
 		}
+		ksm_run_stored = ksm_run;
 	}
 	mutex_unlock(&ksm_thread_mutex);
 
