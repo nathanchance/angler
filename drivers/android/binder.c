@@ -2214,6 +2214,7 @@ static void binder_transaction(struct binder_proc *proc,
 			struct binder_buffer_object *bp =
 				to_binder_buffer_object(hdr);
 			size_t buf_left = sg_buf_end - sg_bufp;
+			bool is_null = !!(bp->flags & BINDER_BUFFER_FLAG_NULL);
 
 			if (bp->length > buf_left) {
 				binder_user_error("%d:%d got transaction with too large buffer\n",
@@ -2221,19 +2222,30 @@ static void binder_transaction(struct binder_proc *proc,
 				return_error = BR_FAILED_REPLY;
 				goto err_bad_offset;
 			}
-			if (copy_from_user_preempt_disabled(
-					sg_bufp,
-					(const void __user *)(uintptr_t)
-					bp->buffer, bp->length)) {
-				binder_user_error("%d:%d got transaction with invalid offsets ptr\n",
+			if (is_null && bp->length > 0) {
+				binder_user_error("%d:%d got transaction with NULL flag but positive length\n",
 						  proc->pid, thread->pid);
 				return_error = BR_FAILED_REPLY;
 				goto err_copy_data_failed;
 			}
-			/* Fixup buffer pointer to target proc address space */
-			bp->buffer = (uintptr_t)sg_bufp +
-				target_proc->user_buffer_offset;
-			sg_bufp += ALIGN(bp->length, sizeof(u64));
+			if (is_null) {
+				bp->buffer = (uintptr_t)NULL;
+			} else {
+				if (copy_from_user_preempt_disabled(
+						sg_bufp,
+						(const void __user *)(uintptr_t)
+						bp->buffer, bp->length)) {
+					binder_user_error("%d:%d got transaction with invalid offsets ptr\n",
+							  proc->pid,
+							  thread->pid);
+					return_error = BR_FAILED_REPLY;
+					goto err_copy_data_failed;
+				}
+				/* Fixup buffer to target proc address space */
+				bp->buffer = (uintptr_t)sg_bufp +
+					target_proc->user_buffer_offset;
+				sg_bufp += ALIGN(bp->length, sizeof(u64));
+			}
 
 			ret = binder_fixup_parent(t, thread, bp, off_start,
 						  offp - off_start,

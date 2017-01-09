@@ -127,6 +127,7 @@ struct binder_buffer_object {
 
 enum {
 	BINDER_BUFFER_FLAG_HAS_PARENT = 0x01,
+	BINDER_BUFFER_FLAG_NULL = 0x02,
 };
 
 /* struct binder_fd_array_object - object describing an array of fds in a buffer
