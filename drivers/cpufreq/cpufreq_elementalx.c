@@ -262,7 +262,7 @@ finished:
 static void ex_dbs_timer(struct work_struct *work)
 {
 	struct ex_cpu_dbs_info_s *dbs_info = container_of(work,
-			struct ex_cpu_dbs_info_s, cdbs.work.work);
+			struct ex_cpu_dbs_info_s, cdbs.dwork.work);
 	unsigned int cpu = dbs_info->cdbs.cur_policy->cpu;
 	struct ex_cpu_dbs_info_s *core_dbs_info = &per_cpu(ex_cpu_dbs_info,
 			cpu);
