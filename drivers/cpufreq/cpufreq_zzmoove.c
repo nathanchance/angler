@@ -312,7 +312,7 @@ static void zz_check_cpu(int cpu, unsigned int load)
 static void zz_dbs_timer(struct work_struct *work)
 {
 	struct zz_cpu_dbs_info_s *dbs_info = container_of(work,
-			struct zz_cpu_dbs_info_s, cdbs.work.work);
+			struct zz_cpu_dbs_info_s, cdbs.dwork.work);
 	unsigned int cpu = dbs_info->cdbs.cur_policy->cpu;
 	struct zz_cpu_dbs_info_s *core_dbs_info = &per_cpu(zz_cpu_dbs_info,
 			cpu);
