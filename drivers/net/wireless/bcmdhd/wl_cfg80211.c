@@ -10249,13 +10249,21 @@ wl_cfg80211_netdev_notifier_call(struct notifier_block * nb,
 	void *ndev)
 {
 	struct net_device *dev = ndev;
-	struct wireless_dev *wdev = dev->ieee80211_ptr;
-	struct bcm_cfg80211 *cfg = wl_get_cfg(dev);
+	struct wireless_dev *wdev;
+	struct bcm_cfg80211 *cfg;
 
 	WL_DBG(("Enter \n"));
 
-	if (!wdev || !cfg || dev == bcmcfg_to_prmry_ndev(cfg))
+	if (!dev || !dev->ieee80211_ptr)
 		return NOTIFY_DONE;
+
+	cfg = wl_get_cfg(dev);
+	if (!cfg || dev == bcmcfg_to_prmry_ndev(cfg))
+		return NOTIFY_DONE;
+
+	wdev = dev->ieee80211_ptr;
+
+	pr_info("%s: handling state %lu\n", __func__, state);
 
 	switch (state) {
 		case NETDEV_DOWN:
