@@ -188,6 +188,7 @@ struct cs_dbs_tuners {
 	unsigned int sleep_depth;
 	unsigned int boost_enabled;
 	unsigned int boost_count;
+	unsigned int boost_ceiling;
 };
 
 /* Common Governor data across policies */
