@@ -2236,7 +2236,7 @@ CONFIG_VIDEOBUF2_MSM_MEM=y
 #
 # Media drivers
 #
-# CONFIG_MEDIA_USB_SUPPORT is not set
+CONFIG_MEDIA_USB_SUPPORT=y
 
 #
 # Webcam devices
