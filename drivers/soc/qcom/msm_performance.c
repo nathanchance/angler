@@ -171,7 +171,6 @@ device_param_cb(num_clusters, &param_ops_num_clusters, NULL, 0644);
 
 static int set_max_cpus(const char *buf, const struct kernel_param *kp)
 {
-#if 0
 	unsigned int i, ntokens = 0;
 	const char *cp = buf;
 	int val;
@@ -202,7 +201,6 @@ static int set_max_cpus(const char *buf, const struct kernel_param *kp)
 	}
 
 	schedule_delayed_work(&evaluate_hotplug_work, 0);
-#endif
 
 	return 0;
 }
@@ -1011,7 +1009,6 @@ device_param_cb(iowait_ceiling_pct, &param_ops_iowait_ceiling_pct, NULL, 0644);
 
 static int set_workload_detect(const char *buf, const struct kernel_param *kp)
 {
-#if 0
 	unsigned int val, i;
 	struct cluster *i_cl;
 	unsigned long flags;
@@ -1053,8 +1050,6 @@ static int set_workload_detect(const char *buf, const struct kernel_param *kp)
 	}
 
 	wake_up_process(notify_thread);
-#endif
-
 	return 0;
 }
 
