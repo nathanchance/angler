@@ -46,21 +46,12 @@
 #include <linux/input.h>
 #include <linux/display_state.h>
 
-#ifdef CONFIG_MSM_HOTPLUG
-#include <linux/msm_hotplug.h>
-#include <linux/workqueue.h>
-#endif
-
 #define FPC1020_RESET_LOW_US 1000
 #define FPC1020_RESET_HIGH1_US 100
 #define FPC1020_RESET_HIGH2_US 1250
 #define FPC_TTW_HOLD_TIME 1000
 
 #define KEY_FINGERPRINT 0x2ee
-
-#ifdef CONFIG_MSM_HOTPLUG
-extern void msm_hotplug_resume_timeout(void);
-#endif
 
 static const char *const pctl_names[] = {
 	"fpc1020_reset_reset",
@@ -470,14 +461,6 @@ exit:
 	return ret;
 }
 
-#ifdef CONFIG_MSM_HOTPLUG
-static void msm_hotplug_resume_call(struct work_struct *msm_hotplug_resume_call_work)
-{
-	msm_hotplug_resume_timeout();
-}
-static DECLARE_WORK(msm_hotplug_resume_call_work, msm_hotplug_resume_call);
-#endif
-
 static irqreturn_t fpc1020_irq_handler(int irq, void *handle)
 {
 	struct fpc1020_data *fpc1020 = handle;
@@ -489,13 +472,6 @@ static irqreturn_t fpc1020_irq_handler(int irq, void *handle)
 
 	if (fpc1020->wakeup_enabled) {
 		wake_lock_timeout(&fpc1020->ttw_wl, msecs_to_jiffies(FPC_TTW_HOLD_TIME));
-#ifdef CONFIG_MSM_HOTPLUG
-		if (msm_enabled && msm_hotplug_scr_suspended &&
-		   !msm_hotplug_fingerprint_called) {
-			msm_hotplug_fingerprint_called = true;
-			schedule_work(&msm_hotplug_resume_call_work);
-		}
-#endif
 	}
 
 	sysfs_notify(&fpc1020->dev->kobj, NULL, dev_attr_irq.attr.name);
