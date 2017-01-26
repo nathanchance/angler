@@ -215,8 +215,9 @@ static int bluetooth_power(int on)
 gpio_fail:
 		if (bt_power_pdata->bt_gpio_sys_rst)
 			gpio_free(bt_power_pdata->bt_gpio_sys_rst);
-			bt_vreg_disable(bt_power_pdata->bt_vdd_io);
-		}
+
+		bt_vreg_disable(bt_power_pdata->bt_vdd_io);
+	}
 out:
 	return rc;
 }
