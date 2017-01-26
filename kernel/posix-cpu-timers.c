@@ -1060,7 +1060,7 @@ static void check_process_timers(struct task_struct *tsk,
 void posix_cpu_timer_schedule(struct k_itimer *timer)
 {
 	struct task_struct *p = timer->it.cpu.task;
-	unsigned long long now;
+	unsigned long long now = 0;
 
 	if (unlikely(p == NULL))
 		/*
@@ -1272,7 +1272,7 @@ void run_posix_cpu_timers(struct task_struct *tsk)
 void set_process_cpu_timer(struct task_struct *tsk, unsigned int clock_idx,
 			   cputime_t *newval, cputime_t *oldval)
 {
-	unsigned long long now;
+	unsigned long long now = 0;
 
 	BUG_ON(clock_idx == CPUCLOCK_SCHED);
 	cpu_timer_sample_group(clock_idx, tsk, &now);
