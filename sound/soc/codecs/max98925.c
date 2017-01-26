@@ -992,7 +992,7 @@ static int max98925_set_clock(struct max98925_priv *max98925, unsigned int rate)
 	unsigned int mdll;
 	unsigned int n;
 	unsigned int m;
-	u8 dai_sr;
+	u8 dai_sr = 0;
 
 	switch (max98925->sysclk) {
 	case 6000000:
