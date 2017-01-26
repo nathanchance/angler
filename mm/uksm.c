@@ -4719,7 +4719,7 @@ int try_to_unmap_ksm(struct page *page,
 	struct rmap_item *rmap_item;
 	int ret = SWAP_AGAIN;
 	int search_new_forks = 0;
-	unsigned long address;
+	unsigned long address = 0;
 
 	VM_BUG_ON(!PageKsm(page));
 	VM_BUG_ON(!PageLocked(page));
