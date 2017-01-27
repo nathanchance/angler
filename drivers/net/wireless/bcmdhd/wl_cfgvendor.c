@@ -813,7 +813,7 @@ static int wl_cfgvendor_epno_cfg(struct wiphy *wiphy,
 	int err = 0;
 	struct bcm_cfg80211 *cfg = wiphy_priv(wiphy);
 	dhd_pno_ssid_t *ssid_elem;
-	int tmp, tmp1, tmp2, type, num = 0;
+	int tmp, tmp1, tmp2, type = 0, num = 0;
 	const struct nlattr *outer, *inner, *iter;
 	uint32 cnt_ssid = 0;
 	wl_pfn_ssid_params_t params;
@@ -2482,8 +2482,8 @@ static int __wl_cfgvendor_dbg_get_pkt_fates(struct wiphy *wiphy,
 	dhd_pub_t *dhd_pub = cfg->pub;
 	struct sk_buff *skb = NULL;
     const struct nlattr *iter;
-	void __user *user_buf;
-	uint16 req_count, resp_count;
+	void __user *user_buf = NULL;
+	uint16 req_count = 0, resp_count;
     int ret, tmp, type, mem_needed;
 
     nla_for_each_attr(iter, data, len, tmp) {
@@ -2852,7 +2852,7 @@ static int wl_cfgvendor_configure_nd_offload(struct wiphy *wiphy,
 	struct bcm_cfg80211 *cfg = wiphy_priv(wiphy);
 	const struct nlattr *iter;
 	int ret = BCME_OK, rem, type;
-	u8 enable;
+	u8 enable = 0;
 
 	nla_for_each_attr(iter, data, len, rem) {
 		type = nla_type(iter);
