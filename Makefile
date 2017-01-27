@@ -383,14 +383,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -std=gnu89
 
 # Thanks gcc!
-KBUILD_CFLAGS   += -Wno-unused-const-variable \
-		   -Wno-error=trigraphs -Wno-error=unused-label \
-		   -Wno-error=array-bounds -Wno-error=memset-transposed-args \
-		   -Wno-error=unused-function -Wno-error=declaration-after-statement \
-		   -Wno-error=unused-variable -Wno-error=parentheses -Wno-error=maybe-uninitialized \
-		   -Wno-error=misleading-indentation -Wno-error=bool-compare -Wno-error=int-conversion \
-		   -Wno-error=discarded-qualifiers -Wno-error=tautological-compare \
-		   -Wno-error=incompatible-pointer-types
+KBUILD_CFLAGS   += -Wno-unused-const-variable
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
