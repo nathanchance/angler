@@ -1203,7 +1203,7 @@ static int nanohub_kthread(void *arg)
 {
 	struct nanohub_data *data = (struct nanohub_data *)arg;
 	struct nanohub_buf *buf = NULL;
-	int ret;
+	int ret = 0;
 	struct timespec curr_ts;
 	uint32_t clear_interrupts[8] = { 0x00000006 };
 	struct device *sensor_dev = data->io[ID_NANOHUB_SENSOR].dev;
