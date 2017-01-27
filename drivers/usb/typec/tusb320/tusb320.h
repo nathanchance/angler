@@ -36,7 +36,7 @@ struct tusb320_device_info {
 	int reverse_state;
 	bool sink_attached;
 	bool clean_failded;
-	bool clean_retry_count;
+	int clean_retry_count;
 	struct completion reverse_completion;
 	struct mutex mutex;
 	struct delayed_work g_current_work;
