@@ -1960,7 +1960,7 @@ static int estimate_battery_age(struct fg_chip *chip, int *actual_capacity)
 {
 	int64_t ocv_cutoff_new, ocv_cutoff_aged, temp_rs_to_rslow;
 	int64_t esr_actual, battery_esr, val;
-	int soc_cutoff_aged, soc_cutoff_new, rc;
+	int soc_cutoff_aged, soc_cutoff_new, rc = 0;
 	int battery_soc, unusable_soc, batt_temp;
 	u8 buffer[3];
 
@@ -3523,7 +3523,7 @@ static int fg_batt_profile_init(struct fg_chip *chip)
 	int len;
 	struct device_node *node = chip->spmi->dev.of_node;
 	struct device_node *batt_node, *profile_node;
-	const char *data, *batt_type_str, *old_batt_type;
+	const char *data, *batt_type_str, *old_batt_type = NULL;
 	bool tried_again = false, vbat_in_range, profiles_same;
 	u8 reg = 0;
 
@@ -4950,7 +4950,7 @@ static int fg_hw_init(struct fg_chip *chip)
 static int fg_setup_memif_offset(struct fg_chip *chip)
 {
 	int rc;
-	u8 dig_major;
+	u8 dig_major = 0;
 
 	rc = fg_read(chip, chip->revision, chip->mem_base + DIG_MINOR, 4);
 	if (rc) {
