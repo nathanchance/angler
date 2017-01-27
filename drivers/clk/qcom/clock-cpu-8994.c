@@ -924,7 +924,7 @@ void sanity_check_clock_tree(u32 muxval, struct mux_clk *mux)
 	u32 lfmux_sel = (muxval & LFMUX_MASK) >> LFMUX_SHIFT;
 	int div = 0;
 	void *base = NULL;
-	unsigned long rate;
+	unsigned long rate = 0;
 	struct clk *c;
 	int cur_uv, req_uv;
 	int *uv;
@@ -1556,7 +1556,7 @@ static void populate_opp_table(struct platform_device *pdev)
 	struct platform_device *apc0_dev, *apc1_dev;
 	struct device_node *apc0_node, *apc1_node;
 	unsigned long apc0_fmax, apc1_fmax;
-	int cpu, a53_cpu, a57_cpu;
+	int cpu = 0, a53_cpu = 0, a57_cpu = 0;
 
 	apc0_node = of_parse_phandle(pdev->dev.of_node, "vdd-a53-supply", 0);
 	apc1_node = of_parse_phandle(pdev->dev.of_node, "vdd-a57-supply", 0);
