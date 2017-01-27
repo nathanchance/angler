@@ -504,6 +504,8 @@ static irqreturn_t qcom_ice_isr(int isr, void *data)
 			QCOM_ICE_STREAM2_NOT_EXPECTED_NEW_TRNS) {
 			err = ICE_ERROR_STREAM2_NOT_EXPECTED_NEW_TRNS;
 			clear_reg |= QCOM_ICE_STREAM2_NOT_EXPECTED_NEW_TRNS;
+		} else {
+			err = ICE_ERROR_INVALID_ARGUMENTS;
 		}
 
 		ice_dev->error_cb(ice_dev->host_controller_data, err);
