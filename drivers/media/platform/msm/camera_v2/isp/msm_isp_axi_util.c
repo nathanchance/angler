@@ -1082,7 +1082,7 @@ void msm_isp_axi_cfg_update(struct vfe_device *vfe_dev,
 {
 	int i, j;
 	uint32_t update_state;
-	unsigned long flags, flags1;
+	unsigned long flags = 0;
 	struct msm_vfe_axi_shared_data *axi_data = &vfe_dev->axi_data;
 	struct msm_vfe_axi_stream *stream_info;
 	int num_stream = 0;
@@ -1098,7 +1098,7 @@ void msm_isp_axi_cfg_update(struct vfe_device *vfe_dev,
 			!stream_info->controllable_output) ||
 			stream_info->state == AVALIABLE)
 			continue;
-		spin_lock_irqsave(&stream_info->lock, flags1);
+		spin_lock_irqsave(&stream_info->lock, flags);
 		if (stream_info->state == PAUSING) {
 			/*AXI Stopped, apply update*/
 			stream_info->state = PAUSED;
@@ -1116,7 +1116,7 @@ void msm_isp_axi_cfg_update(struct vfe_device *vfe_dev,
 				stream_info->output_format;
 			stream_info->state = ACTIVE;
 		}
-		spin_unlock_irqrestore(&stream_info->lock, flags1);
+		spin_unlock_irqrestore(&stream_info->lock, flags);
 	}
 
 	if (num_stream)
