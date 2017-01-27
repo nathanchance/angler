@@ -179,9 +179,9 @@ int cpuidle_idle_call(void)
 		return 0;
 	}
 
-       ret = cpuidle_enabled(drv, dev);
-       if (ret < 0)
-               return ret;
+	ret = cpuidle_enabled(drv, dev);
+	if (ret < 0)
+		return ret;
 
 	/* ask the governor for the next state */
 	next_state = cpuidle_curr_governor->select(drv, dev);
@@ -195,6 +195,8 @@ int cpuidle_idle_call(void)
 		local_irq_enable();
 		return 0;
 	}
+
+	broadcast = !!(drv->states[next_state].flags & CPUIDLE_FLAG_TIMER_STOP);
 
 	trace_cpu_idle_rcuidle(next_state, dev->cpu);
 
