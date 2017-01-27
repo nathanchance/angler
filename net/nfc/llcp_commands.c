@@ -399,7 +399,7 @@ int nfc_llcp_send_connect(struct nfc_llcp_sock *sock)
 {
 	struct nfc_llcp_local *local;
 	struct sk_buff *skb;
-	u8 *service_name_tlv = NULL, service_name_tlv_length;
+	u8 *service_name_tlv = NULL, service_name_tlv_length = 0;
 	u8 *miux_tlv = NULL, miux_tlv_length;
 	u8 *rw_tlv = NULL, rw_tlv_length, rw;
 	int err;
