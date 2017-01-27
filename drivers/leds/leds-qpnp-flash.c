@@ -386,7 +386,7 @@ static ssize_t qpnp_flash_led_max_current_show(struct device *dev,
 	struct qpnp_flash_led *led;
 	struct flash_node_data *flash_node;
 	struct led_classdev *led_cdev = dev_get_drvdata(dev);
-	int max_curr_avail_ma;
+	int max_curr_avail_ma = 0;
 	flash_node = container_of(led_cdev, struct flash_node_data, cdev);
 	led = dev_get_drvdata(&flash_node->spmi_dev->dev);
 
