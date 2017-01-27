@@ -2718,6 +2718,10 @@ void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
 	struct page *page;
 	int i;
 
+	/* Debugging fallback to generic bulk */
+	if (kmem_cache_debug(s))
+		return __kmem_cache_free_bulk(s, size, p);
+
 	local_irq_disable();
 	c = this_cpu_ptr(s->cpu_slab);
 
@@ -2725,13 +2729,8 @@ void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
 		void *object = p[i];
 
 		BUG_ON(!object);
-		/* kmem cache debug support */
-		s = cache_from_obj(s, object);
-		if (unlikely(!s))
-			goto exit;
-		slab_free_hook(s, object);
-
 		page = virt_to_head_page(object);
+		BUG_ON(s != page->slab_cache); /* Check if valid slab page */
 
 		if (c->page == page) {
 			/* Fastpath: local CPU free */
@@ -2746,7 +2745,6 @@ void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
 			c = this_cpu_ptr(s->cpu_slab);
 		}
 	}
-exit:
 	c->tid = next_tid(c->tid);
 	local_irq_enable();
 }
@@ -2758,6 +2756,10 @@ bool kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
 {
 	struct kmem_cache_cpu *c;
 	int i;
+
+	/* Debugging fallback to generic bulk */
+	if (kmem_cache_debug(s))
+		return __kmem_cache_alloc_bulk(s, flags, size, p);
 
 	/*
 	 * Drain objects in the per cpu slab, while disabling local
@@ -2784,16 +2786,8 @@ bool kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
 			continue; /* goto for-loop */
 		}
 
-		/* kmem_cache debug support */
-		s = slab_pre_alloc_hook(s, flags);
-		if (unlikely(!s))
-			goto error;
-
 		c->freelist = get_freepointer(s, object);
 		p[i] = object;
-
-		/* kmem_cache debug support */
-		slab_post_alloc_hook(s, flags, object);
 	}
 	c->tid = next_tid(c->tid);
 	local_irq_enable();
