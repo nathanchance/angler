@@ -327,17 +327,6 @@ struct hmp_sched_stats {
 	u64 cumulative_runnable_avg;
 };
 
-struct hmp_power_cost {
-	unsigned int freq;
-	unsigned int *power_cost;
-	u64 demand;
-};
-
-struct hmp_power_cost_table {
-	int len;
-	struct hmp_power_cost *map;
-};
-
 extern bool have_sched_same_pwr_cost_cpus;
 extern cpumask_var_t sched_same_pwr_cost_cpus;
 
@@ -684,8 +673,6 @@ struct rq {
 	u64 cur_irqload;
 	u64 avg_irqload;
 	u64 irqload_ts;
-
-	struct hmp_power_cost_table pwr_cost_table;
 
 #ifdef CONFIG_SCHED_FREQ_INPUT
 	unsigned int old_busy_time;
