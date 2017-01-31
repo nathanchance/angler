@@ -931,7 +931,6 @@ extern unsigned int sched_grp_min_cluster_update_delta;
 
 extern void reset_cpu_hmp_stats(int cpu, int reset_cra);
 extern void fixup_nr_big_small_task(int cpu, int reset_stats);
-extern unsigned int task_load(struct task_struct *p);
 unsigned int max_task_load(void);
 extern void sched_account_irqtime(int cpu, struct task_struct *curr,
 				 u64 delta, u64 wallclock);
