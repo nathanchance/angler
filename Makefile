@@ -329,7 +329,7 @@ AS		= $(CROSS_COMPILE)as
 LD		= $(CROSS_COMPILE)ld
 LD		+= -O3 --strip-debug
 CC		= $(CCACHE) $(CROSS_COMPILE)gcc
-CC		+= -O3 -mcpu=cortex-a57.cortex-a53 -mtune=cortex-a57.cortex-a53
+CC		+= -O3 -mcpu=cortex-a57.cortex-a53+crypto -mtune=cortex-a57.cortex-a53
 CC		+= -fmodulo-sched -fmodulo-sched-allow-regmoves
 CC		+= -fgraphite-identity -floop-block -floop-interchange -floop-strip-mine
 CC		+= -ftree-loop-linear -ftree-loop-distribution
