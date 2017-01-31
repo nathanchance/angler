@@ -653,7 +653,7 @@ static int _get_nohz_timer_target_hmp(void)
 
 	for_each_online_cpu(i) {
 		struct rq *rq = cpu_rq(i);
-		int cpu_cost = power_cost_at_freq(i, rq->max_possible_freq);
+		int cpu_cost = power_cost_at_freq(i, cpu_max_possible_freq(i));
 		int cstate = rq->cstate;
 
 		if (power_delta_exceeded(cpu_cost, min_cost)) {
@@ -2686,8 +2686,8 @@ void sched_get_cpus_busy(unsigned long *busy, const struct cpumask *query_cpus)
 
 		notifier_sent[i] = rq->notifier_sent;
 		rq->notifier_sent = 0;
-		cur_freq[i] = rq->cur_freq;
-		max_freq[i] = rq->max_freq;
+		cur_freq[i] = cpu_cur_freq(cpu);
+		max_freq[i] = cpu_max_freq(cpu);
 		i++;
 	}
 
@@ -2705,10 +2705,10 @@ void sched_get_cpus_busy(unsigned long *busy, const struct cpumask *query_cpus)
 			if (load[i] > window_size)
 				load[i] = window_size;
 			load[i] = scale_load_to_freq(load[i], cur_freq[i],
-						     rq->max_possible_freq);
+						cpu_max_possible_freq(cpu));
 		} else {
 			load[i] = scale_load_to_freq(load[i], max_freq[i],
-						     rq->max_possible_freq);
+						cpu_max_possible_freq(cpu));
 		}
 
 		busy[i] = div64_u64(load[i], NSEC_PER_USEC);
@@ -2963,18 +2963,20 @@ static void check_for_up_down_migrate_update(const struct cpumask *cpus)
 {
 	int i = cpumask_first(cpus);
 	struct rq *rq = cpu_rq(i);
+	int cpu = cpu_of(rq);
 
 	if (!sched_up_down_migrate_auto_update)
 		return;
 
-	if (rq->max_possible_capacity == max_possible_capacity)
+	if (cpu_max_possible_capacity(cpu) == max_possible_capacity)
 		return;
 
-	if (rq->max_possible_freq == rq->max_freq)
+	if (cpu_max_possible_capacity(cpu) == cpu_max_freq(cpu))
 		up_down_migrate_scale_factor = 1024;
 	else
-		up_down_migrate_scale_factor = (1024 * rq->max_possible_freq)/
-					rq->max_freq;
+		up_down_migrate_scale_factor = (1024 *
+					cpu_max_possible_capacity(cpu)) /
+					cpu_max_freq(cpu);
 
 	update_up_down_migrate();
 }
