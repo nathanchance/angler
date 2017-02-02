@@ -414,7 +414,8 @@ static void cpus_previously_online_update(void)
 	cpumask_or(cpus_previously_online, cpus_previously_online,
 		   cpu_online_mask);
 	put_online_cpus();
-	cpulist_scnprintf(buf, sizeof(buf), cpus_previously_online);
+	scnprintf(buf, sizeof(buf), "%*pbl",
+			cpumask_pr_args(cpus_previously_online));
 	pr_debug("%s\n", buf);
 }
 
@@ -1165,8 +1166,9 @@ static int __ref init_cluster_freq_table(void)
 				if (!cpu_set) {
 					cpumask_clear_cpu(_cpu,
 						cpus_previously_online);
-					cpumask_scnprintf(buf, sizeof(buf),
-						cpus_previously_online);
+					scnprintf(buf, sizeof(buf), "%*pb",
+						cpumask_pr_args(
+						cpus_previously_online));
 					pr_debug("Reset prev online to %s\n",
 						 buf);
 				}
