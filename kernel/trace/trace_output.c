@@ -146,7 +146,7 @@ trace_seq_bitmask(struct trace_seq *s, const unsigned long *maskp,
 	if (s->full || !len)
 		return 0;
 
-	ret = bitmap_scnprintf(s->buffer, len, maskp, nmaskbits);
+	ret = scnprintf(s->buffer, len, " %*pbl", nmaskbits, maskp);
 	s->len += ret;
 
 	return 1;
