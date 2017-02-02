@@ -292,8 +292,8 @@ static int get_managed_cpus(char *buf, const struct kernel_param *kp)
 		return cnt;
 
 	for (i = 0; i < num_clusters; i++) {
-		cnt += cpulist_scnprintf(buf + cnt, PAGE_SIZE - cnt,
-						managed_clusters[i]->cpus);
+		cnt += scnprintf(buf + cnt, PAGE_SIZE - cnt, "%*pbl",
+				cpumask_pr_args(managed_clusters[i]->cpus));
 		if ((i + 1) >= num_clusters)
 			break;
 		cnt += snprintf(buf + cnt, PAGE_SIZE - cnt, ":");
@@ -325,8 +325,8 @@ static int get_managed_online_cpus(char *buf, const struct kernel_param *kp)
 		cpumask_complement(&tmp_mask, i_cl->offlined_cpus);
 		cpumask_and(&tmp_mask, i_cl->cpus, &tmp_mask);
 
-		cnt += cpulist_scnprintf(buf + cnt, PAGE_SIZE - cnt,
-								&tmp_mask);
+		cnt += scnprintf(buf + cnt, PAGE_SIZE - cnt, "%*pbl",
+						cpumask_pr_args(&tmp_mask));
 
 		if ((i + 1) >= num_clusters)
 			break;
