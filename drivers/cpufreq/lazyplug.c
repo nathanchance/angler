@@ -184,7 +184,7 @@ static unsigned int __read_mostly *nr_run_profiles[] = {
 };
 
 #define NR_RUN_ECO_MODE_PROFILE	3
-#define NR_RUN_HYSTERESIS_OCTA	12
+#define NR_RUN_HYSTERESIS_OCTA	16
 #define NR_RUN_HYSTERESIS_QUAD	8
 #define NR_RUN_HYSTERESIS_DUAL	4
 
