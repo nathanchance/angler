@@ -78,7 +78,7 @@
 #undef DEBUG_LAZYPLUG
 
 #define LAZYPLUG_MAJOR_VERSION	1
-#define LAZYPLUG_MINOR_VERSION	4
+#define LAZYPLUG_MINOR_VERSION	5
 
 #define DEF_SAMPLING_MS			(268)
 #define DEF_IDLE_COUNT			(19) /* 268 * 19 = 5092, almost equals to 5 seconds */
@@ -121,7 +121,9 @@ static DEFINE_PER_CPU(struct ip_cpu_info, ip_info);
 
 #define CAPACITY_RESERVE	50
 
-#if defined(CONFIG_ARCH_APQ8084) || defined(CONFIG_ARM64)
+#if defined(CONFIG_ARCH_MSM8994) || defined(CONFIG_ARCH_MSM_8996)
+#define THREAD_CAPACITY (520 - CAPACITY_RESERVE)
+#elif defined(CONFIG_ARCH_APQ8084) || defined(CONFIG_ARM64)
 #define THREAD_CAPACITY (430 - CAPACITY_RESERVE)
 #elif defined(CONFIG_ARCH_MSM8960) || defined(CONFIG_ARCH_APQ8064) || \
 defined(CONFIG_ARCH_MSM8974)
