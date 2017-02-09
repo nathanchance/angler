@@ -1,7 +1,7 @@
 VERSION = 3
 PATCHLEVEL = 10
 SUBLEVEL = 105
-EXTRAVERSION =
+EXTRAVERSION = -flash-angler-$(shell date +%Y%m%d)
 NAME = TOSSUG Baby Fish
 
 # *DOCUMENTATION*
