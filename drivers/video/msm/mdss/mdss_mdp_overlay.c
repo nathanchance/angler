@@ -2763,7 +2763,7 @@ static ssize_t dynamic_dsitiming_sysfs_wta(struct device *dev,
 	}
 
 	if (!mdp5_data->ctl || !mdss_mdp_ctl_is_power_on(mdp5_data->ctl)) {
-		pr_err("%s: no ctl or ctl is off\n",__func__);
+		pr_debug_ratelimited("%s: no ctl or ctl is off\n",__func__);
 		return -ENODEV;
 	}
 
@@ -2774,7 +2774,7 @@ static ssize_t dynamic_dsitiming_sysfs_wta(struct device *dev,
 	}
 
 	if (bitclk == pdata->panel_info.clk_rate) {
-		pr_err("%s: dsi bit clk  is already %d\n",
+		pr_debug("%s: dsi bit clk  is already %d\n",
 			__func__, bitclk);
 		return count;
 	}
