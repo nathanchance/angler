@@ -2188,7 +2188,7 @@ static void msm8994_quat_mi2s_snd_shutdown(struct snd_pcm_substream *substream)
 	struct msm_pinctrl_info *pinctrl_info = &pdata->pinctrl_info;
 	int ret = 0;
 
-	pr_info("%s: dai name %s %pK  substream = %s  stream = %d  \n", __func__, cpu_dai->name, cpu_dai->dev,substream->name, substream->stream);
+	pr_debug("%s: dai name %s %pK  substream = %s  stream = %d  \n", __func__, cpu_dai->name, cpu_dai->dev,substream->name, substream->stream);
 	if (atomic_dec_return(&quat_mi2s_rsc_ref) == 0) {
 
 		quat_mi2s_clk.clk_val1 = Q6AFE_LPASS_IBIT_CLK_DISABLE;
@@ -2202,7 +2202,7 @@ static void msm8994_quat_mi2s_snd_shutdown(struct snd_pcm_substream *substream)
 		ret = msm_reset_pinctrl(pinctrl_info, STATE_QUAT_MI2S_ACTIVE);
 		if (ret)
 			pr_err("%s: Reset pinctrl failed with %d\n", __func__, ret);
-		pr_info("%s Quaternary MI2S Clock is Disabled", __func__);
+		pr_debug("%s Quaternary MI2S Clock is Disabled", __func__);
 	}
 }
 
