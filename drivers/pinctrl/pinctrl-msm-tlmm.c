@@ -977,7 +977,7 @@ void msm_tlmm_show_gp_irq_resume(void)
 			if (desc != NULL &&
 				desc->action && desc->action->name) {
 				name = desc->action->name;
-				pr_warning("%s: %d triggered %s\n",
+				pr_debug("%s: %d triggered %s\n",
 						__func__, irq, name);
 			}
 		}
