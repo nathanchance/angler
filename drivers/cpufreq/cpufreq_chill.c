@@ -405,7 +405,7 @@ static struct attribute_group cs_attr_group_gov_pol = {
 
 /************************** sysfs end ************************/
 
-static int cs_init(struct dbs_data *dbs_data)
+static int cs_init(struct dbs_data *dbs_data, struct cpufreq_policy *policy)
 {
 	struct cs_dbs_tuners *tuners;
 
