@@ -16,8 +16,8 @@
 #include <linux/kernel.h>
 #include <linux/delay.h>
 #include <linux/mfd/wcd9xxx/wcd9xxx_registers.h>
-#include "wcd9xxx-common.h"
 #include "pdesireaudio.h"
+#include "wcd9xxx-common.h"
 
 #define CLSH_COMPUTE_EAR 0x01
 #define CLSH_COMPUTE_HPH_L 0x02
