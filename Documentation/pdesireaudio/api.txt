@@ -1,0 +1,57 @@
+PDesireAudio Audio Driver for WCD9330
+
+Author: Tristan Marsell, Team DevElite
+Contact: tristan.marsell@t-online.de
+
+Current Version: 10.0
+Codename: Yandere Audio
+
+INTRODUCTION
+-------------
+PDesireAudio is a kernel driver by Tristan Marsell and Team DevElite, based on WCD drivers by Qualcomm.
+Two modes are included:
+
+	PDesireAudio Ultra High Quality Mode:
+	Forked from the WCD9xxx Ultra High Quality Mode but more advanced
+	Main Features:
+		-disable every possible CSLH stream to save more power
+		-enable CLSAB streams to minimize distortion on high and low frequencies
+		-disable all compander streams (COMP0, COMP1, etc.) to reduce distortion
+		-disable all decimator streams (DEC0, DEC1, etc.) to disable cut-offs on audio
+		-Set Ultra High Quality Audio mode on even when frequency is not 192kHz 24bit
+		-Microphone dynamic High Pass Filter bypass
+		-little bit power saving due less streams
+		-Set default amperages higher on SPKDRV
+
+
+	PDesireAudio Advanced Mode:
+	Works in combination with PDesireAudio Ultra High Quality Mode
+	Main Features:
+		-reset compander streams
+
+
+
+ACCESSIBILITY & API
+--------------------
+PDesireAudio UHQA & Advanced Mode are on by default, to change that
+change the value on /sys/modules/snd_soc_wcd9330/uhqa_mode_pdesireaudio to 0
+in your filesystem
+
+If you want to implement the switch in a code for kernel:
+
+Header file needs to be imported:
+#include <linux/pdesireaudio/api.h>
+
+API DESCRIPTION:
+
+	enable_pdesireaudio();
+	Enable PDesireAudio and re-init PDesireAudio
+
+	disable_pdesireaudio();
+	Disable PDesireAudio and re-init PDesireAudio
+
+	reinit_pdesireaudio();
+	Re-init PDesireAudio
+
+
+You can implement it anywhere and via calling the methods above shown control PDesireAudio

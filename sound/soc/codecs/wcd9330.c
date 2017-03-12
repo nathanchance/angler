@@ -1,10 +1,10 @@
 /* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
  * Copyright (C) 2017 Tristan Marsell (tristan.marsell@t-online.de). All rights reserved.
- * Copyright (C) 2017 Team Project Desire. All rights reserved.
+ * Copyright (C) 2017 Team DevElite. All rights reserved.
  *
  * PDesireAudio WCD9330 Tomtom Audio Driver
  * Copyright (C) 2017 Tristan Marsell (tristan.marsell@t-online.de). All rights reserved.
- * Copyright (C) 2017 Team Project Desire. All rights reserved.
+ * Copyright (C) 2017 Team DevElite. All rights reserved.
  *
  * NOTE: This file is licensed under GPL v2 also with modifications.
  *
@@ -121,24 +121,24 @@ MODULE_PARM_DESC(high_perf_mode, "enable/disable class AB config for hph");
  * Github: PDesire (https://github.com/PDesire)
  */
 
+
+//PDesireAudio Version: 10.0 Yandere Audio
 static int uhqa_mode_pdesireaudio = 1;
 module_param(uhqa_mode_pdesireaudio, int,
 				S_IRUGO | S_IWUSR | S_IWGRP);
 MODULE_PARM_DESC(uhqa_mode_pdesireaudio, "PDesireAudio UHQA Audio output switch");
 
-int pdesireaudio_start(void)
+void pdesireaudio_start(void)
 {
 	uhqa_mode_pdesireaudio = 1;
-	return 0;
 }
 
-int pdesireaudio_remove(void)
+void pdesireaudio_remove(void)
 {
 	uhqa_mode_pdesireaudio = 0;
-	return 0;
 }
 
-int pdesireaudio_init(void)
+void pdesireaudio_init(void)
 {
 	bool active;
 
@@ -151,8 +151,6 @@ int pdesireaudio_init(void)
 
 	if (active == true)
 		pdesireaudio_start();
-
-	return 0;
 }
 
 static struct afe_param_slimbus_slave_port_cfg tomtom_slimbus_slave_port_cfg = {
@@ -1146,39 +1144,34 @@ static int tomtom_config_gain_compander(struct snd_soc_codec *codec,
 				       int comp, bool enable)
 {
 	int ret = 0;
-
-	switch (comp) {
-	case COMPANDER_0:
-		if (!uhqa_mode_pdesireaudio) {
+	if (!uhqa_mode_pdesireaudio) {
+		switch (comp) {
+		case COMPANDER_0:
 			snd_soc_update_bits(codec, TOMTOM_A_SPKR_DRV1_GAIN,
-						1 << 2, !enable << 2);
+							1 << 2, !enable << 2);
 			snd_soc_update_bits(codec, TOMTOM_A_SPKR_DRV2_GAIN,
-						1 << 2, !enable << 2);
-		}
-		break;
-	case COMPANDER_1:
-		if (!uhqa_mode_pdesireaudio) {
+							1 << 2, !enable << 2);
+			break;
+		case COMPANDER_1:
 			snd_soc_update_bits(codec, TOMTOM_A_RX_HPH_L_GAIN,
-					    1 << 5, !enable << 5);
+						    1 << 5, !enable << 5);
 			snd_soc_update_bits(codec, TOMTOM_A_RX_HPH_R_GAIN,
-					    1 << 5, !enable << 5);
-		}
-		break;
-	case COMPANDER_2:
-		if (!uhqa_mode_pdesireaudio) {
+						    1 << 5, !enable << 5);
+			break;
+		case COMPANDER_2:
 			snd_soc_update_bits(codec, TOMTOM_A_RX_LINE_1_GAIN,
-					    1 << 5, !enable << 5);
+						    1 << 5, !enable << 5);
 			snd_soc_update_bits(codec, TOMTOM_A_RX_LINE_3_GAIN,
-					    1 << 5, !enable << 5);
+						    1 << 5, !enable << 5);
 			snd_soc_update_bits(codec, TOMTOM_A_RX_LINE_2_GAIN,
-					    1 << 5, !enable << 5);
+						    1 << 5, !enable << 5);
 			snd_soc_update_bits(codec, TOMTOM_A_RX_LINE_4_GAIN,
-					    1 << 5, !enable << 5);
+						    1 << 5, !enable << 5);
+			break;
+		default:
+			WARN_ON(1);
+			ret = -EINVAL;
 		}
-		break;
-	default:
-		WARN_ON(1);
-		ret = -EINVAL;
 	}
 
 	return ret;
@@ -1250,7 +1243,7 @@ static int tomtom_config_compander(struct snd_soc_dapm_widget *w,
 				 __func__);
 			break;
 		}
-		/* Disable Compander fully */
+		/* PDesireAudio Compander Switch */
 		if (!uhqa_mode_pdesireaudio) {
 			/* Set compander Sample rate */
 			snd_soc_update_bits(codec,
@@ -1268,9 +1261,7 @@ static int tomtom_config_compander(struct snd_soc_dapm_widget *w,
 						0x80, 0x80);
 				}
 			}
-		}
 
-		if (!uhqa_mode_pdesireaudio) {
 			/* Enable RX interpolation path compander clocks */
 			snd_soc_update_bits(codec, TOMTOM_A_CDC_CLK_RX_B2_CTL,
 						mask << comp_shift[comp],
@@ -1284,26 +1275,11 @@ static int tomtom_config_compander(struct snd_soc_dapm_widget *w,
 
 			/* Set gain source to compander */
 			tomtom_config_gain_compander(codec, comp, true);
-		} else {
-			/* Enable RX interpolation path compander clocks */
-			snd_soc_update_bits(codec, TOMTOM_A_CDC_CLK_RX_B2_CTL,
-						mask << comp_shift[comp],
-						mask << comp_shift[comp]);
-			/* Toggle compander reset bits */
-			snd_soc_update_bits(codec, TOMTOM_A_CDC_CLK_OTHR_RESET_B2_CTL,
-						mask << comp_shift[comp],
-						mask << comp_shift[comp]);
-			snd_soc_update_bits(codec, TOMTOM_A_CDC_CLK_OTHR_RESET_B2_CTL,
-						mask << comp_shift[comp], 0);
 
-			/* Set gain source to compander */
-			tomtom_config_gain_compander(codec, comp, false);
-		}
-
-		/* Compander enable */
-		snd_soc_update_bits(codec, TOMTOM_A_CDC_COMP0_B1_CTL +
+			/* Compander enable */
+			snd_soc_update_bits(codec, TOMTOM_A_CDC_COMP0_B1_CTL +
 				    (comp * 8), enable_mask, enable_mask);
-		if (!uhqa_mode_pdesireaudio) {
+
 			tomtom_discharge_comp(codec, comp);
 
 			/* Set sample rate dependent paramater */
@@ -1315,24 +1291,43 @@ static int tomtom_config_compander(struct snd_soc_dapm_widget *w,
 			snd_soc_update_bits(codec,
 						TOMTOM_A_CDC_COMP0_B2_CTL + (comp * 8),
 						0x0F, comp_params->peak_det_timeout);
+		} else {
+			/* Disable compander */
+			snd_soc_update_bits(codec,
+						TOMTOM_A_CDC_COMP0_B1_CTL + (comp * 8),
+						 enable_mask, 0x00);
+
+			/* Toggle compander reset bits */
+			snd_soc_update_bits(codec, TOMTOM_A_CDC_CLK_OTHR_RESET_B2_CTL,
+								mask << comp_shift[comp],
+								mask << comp_shift[comp]);
+			snd_soc_update_bits(codec, TOMTOM_A_CDC_CLK_OTHR_RESET_B2_CTL,
+								mask << comp_shift[comp], 0);
+
+			/* Turn off the clock for compander in pair */
+			snd_soc_update_bits(codec, TOMTOM_A_CDC_CLK_RX_B2_CTL,
+								mask << comp_shift[comp], 0);
+
+			/* Set gain source to register */
+			tomtom_config_gain_compander(codec, comp, false);
 		}
 		break;
 	case SND_SOC_DAPM_PRE_PMD:
 		/* Disable compander */
 		snd_soc_update_bits(codec,
-				    TOMTOM_A_CDC_COMP0_B1_CTL + (comp * 8),
-				    enable_mask, 0x00);
+					TOMTOM_A_CDC_COMP0_B1_CTL + (comp * 8),
+				        enable_mask, 0x00);
 
 		/* Toggle compander reset bits */
 		snd_soc_update_bits(codec, TOMTOM_A_CDC_CLK_OTHR_RESET_B2_CTL,
-				    mask << comp_shift[comp],
-				    mask << comp_shift[comp]);
+							mask << comp_shift[comp],
+							mask << comp_shift[comp]);
 		snd_soc_update_bits(codec, TOMTOM_A_CDC_CLK_OTHR_RESET_B2_CTL,
-				    mask << comp_shift[comp], 0);
+							mask << comp_shift[comp], 0);
 
 		/* Turn off the clock for compander in pair */
 		snd_soc_update_bits(codec, TOMTOM_A_CDC_CLK_RX_B2_CTL,
-				    mask << comp_shift[comp], 0);
+							mask << comp_shift[comp], 0);
 
 		/* Set gain source to register */
 		tomtom_config_gain_compander(codec, comp, false);
