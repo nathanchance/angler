@@ -375,6 +375,7 @@ next:
 				sm->last_victim[p.gc_mode] = last_victim + 1;
 			else
 				sm->last_victim[p.gc_mode] = segno + 1;
+			sm->last_victim[p.gc_mode] %= MAIN_SEGS(sbi);
 			break;
 		}
 	}
