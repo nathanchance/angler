@@ -14,6 +14,7 @@
 #include <linux/cpuidle.h>
 #include <linux/cpumask.h>
 #include <linux/clockchips.h>
+#include <trace/events/power.h>
 
 #include "cpuidle.h"
 
@@ -184,8 +185,8 @@ static int poll_idle(struct cpuidle_device *dev,
 {
 	local_irq_enable();
 	if (!current_set_polling_and_test()) {
-		while (!need_resched())
-			cpu_relax();
+		while (!need_resched_relaxed())
+			cpu_read_relax();
 	}
 	current_clr_polling();
 
