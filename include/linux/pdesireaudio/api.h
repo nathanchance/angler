@@ -26,3 +26,7 @@ extern void disable_pdesireaudio(void) {
 extern void reinit_pdesireaudio(void) {
 	pdesireaudio_init();
 }
+
+extern void static_mode_pdesireaudio(bool enable) {
+	pdesireaudio_api_static_mode_control(enable);
+}
