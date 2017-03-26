@@ -21,6 +21,7 @@
 #include <linux/io.h>
 #include <linux/module.h>
 #include <linux/switch.h>
+#include <linux/pdesireaudio/api.h>
 #include <sound/core.h>
 #include <sound/soc.h>
 #include <sound/soc-dapm.h>
@@ -286,7 +287,7 @@ static int msm8994_audio_plug_device_init
 				 void (*irq_work)(struct work_struct *work))
 {
 	int ret = 0;
-
+	reinit_pdesireaudio();
 	/* awaike by plug in device OR unplug one of them */
 	u32 plug_irq_flags = IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING;
 
@@ -890,7 +891,6 @@ static int slim0_rx_bit_format_get(struct snd_kcontrol *kcontrol,
 	case SNDRV_PCM_FORMAT_S24_LE:
 		ucontrol->value.integer.value[0] = 1;
 		break;
-
 	case SNDRV_PCM_FORMAT_S16_LE:
 	default:
 		ucontrol->value.integer.value[0] = 0;
