@@ -19,4 +19,7 @@ extern void pdesireaudio_remove(void);
 
 extern void pdesireaudio_init(void);
 
+extern void pdesireaudio_api_static_mode_control(bool enable);
+
+// Non API Methods
 extern void pdesireaudio_advanced_mode_enable(struct snd_soc_codec *codec);

@@ -3,7 +3,7 @@ PDesireAudio Audio Driver for WCD9330
 Author: Tristan Marsell, Team DevElite
 Contact: tristan.marsell@t-online.de
 
-Current Version: 10.0
+Current Version: 10.1
 Codename: Yandere Audio
 
 INTRODUCTION
@@ -22,6 +22,8 @@ Two modes are included:
 		-Microphone dynamic High Pass Filter bypass
 		-little bit power saving due less streams
 		-Set default amperages higher on SPKDRV
+		-Dynamic to improve power usage
+		-Static mode included
 
 
 	PDesireAudio Advanced Mode:
@@ -52,6 +54,13 @@ API DESCRIPTION:
 
 	reinit_pdesireaudio();
 	Re-init PDesireAudio
+
+	static_mode_pdesireaudio(true/false);
+	Set PDesireAudio so static mode or to dynamic mode
+
+	The Static mode allows user to make changes without influence from other modules
+	and libs which control PDesireAudio
+	With False you enable Dynamic mode and with true you enable Static mode
 
 
 You can implement it anywhere and via calling the methods above shown control PDesireAudio
