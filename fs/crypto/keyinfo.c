@@ -199,8 +199,6 @@ int fscrypt_get_crypt_info(struct inode *inode)
 	if (res)
 		return res;
 
-	if (!inode->i_sb->s_cop->get_context)
-		return -EOPNOTSUPP;
 retry:
 	crypt_info = ACCESS_ONCE(inode->i_crypt_info);
 	if (crypt_info) {
