@@ -8537,6 +8537,12 @@ static int sched_domain_debug_one(struct sched_domain *sd, int cpu, int level,
 				group->sgp->power);
 		}
 
+		if (group == sd->groups && sd->child &&
+		    !cpumask_equal(sched_domain_span(sd->child),
+				   sched_group_cpus(group))) {
+			printk(KERN_ERR "ERROR: domain->groups does not match domain->child\n");
+		}
+
 		group = group->next;
 	} while (group != sd->groups);
 	printk(KERN_CONT "\n");
