@@ -22,7 +22,7 @@
 /* Get the contents of the entropy pool.  (Superuser only.) */
 #define RNDGETPOOL	_IOR( 'R', 0x02, int [2] )
 
-/* 
+/*
  * Write bytes into the entropy pool and add to the entropy count.
  * (Superuser only.)
  */
@@ -39,12 +39,6 @@ struct rand_pool_info {
 	int	buf_size;
 	__u32	buf[0];
 };
-
-struct rnd_state {
-	__u32 s1, s2, s3;
-};
-
-/* Exported functions */
 
 /*
  * Flags for getrandom(2)
