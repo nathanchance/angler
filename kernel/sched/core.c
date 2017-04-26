@@ -8474,7 +8474,7 @@ static int sched_domain_debug_one(struct sched_domain *sd, int cpu, int level,
 
 	cpumask_clear(groupmask);
 
-	printk(KERN_DEBUG "%*s domain %d: ", level, "", level);
+	printk(KERN_DEBUG "%*s domain-%d: ", level, "", level);
 
 	if (!(sd->flags & SD_LOAD_BALANCE)) {
 		printk("does not load-balance\n");
@@ -8484,7 +8484,7 @@ static int sched_domain_debug_one(struct sched_domain *sd, int cpu, int level,
 		return -1;
 	}
 
-	printk(KERN_CONT "span %*pbl level %s\n",
+	printk(KERN_CONT "span=%*pbl level=%s\n",
 	       cpumask_pr_args(sched_domain_span(sd)), sd->name);
 
 	if (!cpumask_test_cpu(cpu, sched_domain_span(sd))) {
@@ -8531,18 +8531,21 @@ static int sched_domain_debug_one(struct sched_domain *sd, int cpu, int level,
 
 		cpumask_or(groupmask, groupmask, sched_group_cpus(group));
 
-		printk(KERN_CONT " %*pbl",
-		       cpumask_pr_args(sched_group_cpus(group)));
-		if (group->sgp->power != SCHED_POWER_SCALE) {
-			printk(KERN_CONT " (cpu_power = %d)",
-				group->sgp->power);
-		}
+		printk(KERN_CONT " %d:{ span=%*pbl",
+				group->sgp->id,
+				cpumask_pr_args(sched_group_cpus(group)));
+
+		if (group->sgp->power != SCHED_POWER_SCALE)
+			printk(KERN_CONT " cpu_power=%d", group->sgp->power);
 
 		if (group == sd->groups && sd->child &&
 		    !cpumask_equal(sched_domain_span(sd->child),
 				   sched_group_cpus(group))) {
-			printk(KERN_ERR "ERROR: domain->groups does not match domain->child\n");
+			printk(KERN_ERR "ERROR: domain->groups does not match "
+					"domain->child\n");
 		}
+
+		printk(KERN_CONT " }");
 
 		group = group->next;
 	} while (group != sd->groups);
@@ -8570,7 +8573,7 @@ static void sched_domain_debug(struct sched_domain *sd, int cpu)
 		return;
 	}
 
-	printk(KERN_DEBUG "CPU%d attaching sched-domain:\n", cpu);
+	printk(KERN_DEBUG "CPU%d attaching sched-domain(s):\n", cpu);
 
 	for (;;) {
 		if (sched_domain_debug_one(sd, cpu, level, sched_domains_tmpmask))
@@ -9670,6 +9673,10 @@ static int __sdt_alloc(const struct cpumask *cpu_map)
 					GFP_KERNEL, cpu_to_node(j));
 			if (!sgp)
 				return -ENOMEM;
+
+#ifdef CONFIG_SCHED_DEBUG
+			sgp->id = j;
+#endif
 
 			*per_cpu_ptr(sdd->sgp, j) = sgp;
 		}
