@@ -836,6 +836,10 @@ struct sched_group_power {
 	 */
 	atomic_t nr_busy_cpus;
 
+#ifdef CONFIG_SCHED_DEBUG
+	int id;
+#endif
+
 	unsigned long cpumask[0]; /* iteration mask */
 };
 
