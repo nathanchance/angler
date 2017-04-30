@@ -333,6 +333,7 @@ CC		+= -O3 -mtune=cortex-a57.cortex-a53
 CC		+= -fmodulo-sched -fmodulo-sched-allow-regmoves
 CC		+= -fgraphite-identity -floop-block -floop-interchange -floop-strip-mine
 CC		+= -ftree-loop-linear -ftree-loop-distribution
+CC		+= -mlow-precision-recip-sqrt -mpc-relative-literal-loads
 CPP		= $(CC) -E
 AR		= $(CROSS_COMPILE)ar
 NM		= $(CROSS_COMPILE)nm
