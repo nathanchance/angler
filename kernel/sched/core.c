@@ -8945,7 +8945,7 @@ struct sched_domain_topology_level {
  */
 int group_balance_cpu(struct sched_group *sg)
 {
-	return cpumask_first_and(sched_group_cpus(sg), sched_group_mask(sg));
+	return cpumask_first(sched_group_mask(sg));
 }
 
 
