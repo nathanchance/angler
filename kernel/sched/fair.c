@@ -5435,17 +5435,17 @@ find_idlest_group(struct sched_domain *sd, struct task_struct *p,
 		int i;
 
 		/* Skip over this group if it has no CPUs allowed */
-		if (!cpumask_intersects(sched_group_cpus(group),
+		if (!cpumask_intersects(sched_group_span(group),
 					tsk_cpus_allowed(p)))
 			continue;
 
 		local_group = cpumask_test_cpu(this_cpu,
-					       sched_group_cpus(group));
+					       sched_group_span(group));
 
 		/* Tally up the load of all CPUs in the group */
 		avg_load = 0;
 
-		for_each_cpu(i, sched_group_cpus(group)) {
+		for_each_cpu(i, sched_group_span(group)) {
 			/* Bias balancing toward cpus of our domain */
 			if (local_group)
 				load = source_load(i, load_idx);
@@ -5483,10 +5483,10 @@ find_idlest_cpu(struct sched_group *group, struct task_struct *p, int this_cpu)
 
 	/* Check if we have any choice: */
 	if (group->group_weight == 1)
-		return cpumask_first(sched_group_cpus(group));
+		return cpumask_first(sched_group_span(group));
 
 	/* Traverse only the allowed CPUs */
-	for_each_cpu_and(i, sched_group_cpus(group), tsk_cpus_allowed(p)) {
+	for_each_cpu_and(i, sched_group_span(group), tsk_cpus_allowed(p)) {
 		load = weighted_cpuload(i);
 
 		if (load < min_load || (load == min_load && i == this_cpu)) {
@@ -5528,16 +5528,16 @@ static int select_idle_sibling(struct task_struct *p, int target)
 	for_each_lower_domain(sd) {
 		sg = sd->groups;
 		do {
-			if (!cpumask_intersects(sched_group_cpus(sg),
+			if (!cpumask_intersects(sched_group_span(sg),
 						tsk_cpus_allowed(p)))
 				goto next;
 
-			for_each_cpu(i, sched_group_cpus(sg)) {
+			for_each_cpu(i, sched_group_span(sg)) {
 				if (i == target || !idle_cpu(i))
 					goto next;
 			}
 
-			target = cpumask_first_and(sched_group_cpus(sg),
+			target = cpumask_first_and(sched_group_span(sg),
 					tsk_cpus_allowed(p));
 			goto done;
 next:
@@ -6582,7 +6582,7 @@ bail_inter_cluster_balance(struct lb_env *env, struct sd_lb_stats *sds)
 	if (sds->busiest_nr_big_tasks)
 		return 0;
 
-	nr_cpus = cpumask_weight(sched_group_cpus(sds->busiest));
+	nr_cpus = cpumask_weight(sched_group_span(sds->busiest));
 
 	if ((sds->busiest_scaled_load < nr_cpus * sched_spill_load) &&
 		(sds->busiest_nr_running <
@@ -6741,7 +6741,7 @@ void update_group_power(struct sched_domain *sd, int cpu)
 		 * span the current group.
 		 */
 
-		for_each_cpu(cpu, sched_group_cpus(sdg)) {
+		for_each_cpu(cpu, sched_group_span(sdg)) {
 			struct sched_group *sg = cpu_rq(cpu)->sd->groups;
 
 			power_orig += sg->sgp->power_orig;
@@ -6819,7 +6819,7 @@ static inline void update_sg_lb_stats(struct lb_env *env,
 	max_nr_running = 0;
 	min_nr_running = ~0UL;
 
-	for_each_cpu_and(i, sched_group_cpus(group), env->cpus) {
+	for_each_cpu_and(i, sched_group_span(group), env->cpus) {
 		struct rq *rq = cpu_rq(i);
 
 		trace_sched_cpu_load(cpu_rq(i), idle_cpu(i),
@@ -7046,7 +7046,7 @@ static inline void update_sd_lb_stats(struct lb_env *env,
 	do {
 		int local_group;
 
-		local_group = cpumask_test_cpu(env->dst_cpu, sched_group_cpus(sg));
+		local_group = cpumask_test_cpu(env->dst_cpu, sched_group_span(sg));
 		memset(&sgs, 0, sizeof(sgs));
 		update_sg_lb_stats(env, sg, load_idx, local_group, balance, &sgs,
 						&overload);
@@ -7411,7 +7411,7 @@ static struct rq *find_busiest_queue_hmp(struct lb_env *env,
 	bool find_big = !!(env->flags & LBF_BIG_TASK_ACTIVE_BALANCE);
 	int i;
 
-	for_each_cpu(i, sched_group_cpus(group)) {
+	for_each_cpu(i, sched_group_span(group)) {
 		struct rq *rq = cpu_rq(i);
 		u64 cumulative_runnable_avg =
 				rq->hmp_stats.cumulative_runnable_avg;
@@ -7465,7 +7465,7 @@ static struct rq *find_busiest_queue(struct lb_env *env,
 	if (sched_enable_hmp)
 		return find_busiest_queue_hmp(env, group);
 
-	for_each_cpu(i, sched_group_cpus(group)) {
+	for_each_cpu(i, sched_group_span(group)) {
 		unsigned long power = power_of(i);
 		unsigned long capacity = DIV_ROUND_CLOSEST(power,
 							SCHED_POWER_SCALE);
@@ -7555,7 +7555,7 @@ static int load_balance(int this_cpu, struct rq *this_rq,
 		.sd			= sd,
 		.dst_cpu		= this_cpu,
 		.dst_rq			= this_rq,
-		.dst_grpmask    	= sched_group_cpus(sd->groups),
+		.dst_grpmask    	= sched_group_span(sd->groups),
 		.idle			= idle,
 		.busiest_nr_running 	= 0,
 		.busiest_grp_capacity 	= 0,
