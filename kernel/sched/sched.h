@@ -840,7 +840,7 @@ struct sched_group_power {
 	int id;
 #endif
 
-	unsigned long cpumask[0]; /* iteration mask */
+	unsigned long cpumask[0]; /* balance mask */
 };
 
 struct sched_group {
@@ -866,10 +866,9 @@ static inline struct cpumask *sched_group_cpus(struct sched_group *sg)
 }
 
 /*
- * cpumask masking which cpus in the group are allowed to iterate up the domain
- * tree.
+ * See build_balance_mask().
  */
-static inline struct cpumask *sched_group_mask(struct sched_group *sg)
+static inline struct cpumask *group_balance_mask(struct sched_group *sg)
 {
 	return to_cpumask(sg->sgp->cpumask);
 }
