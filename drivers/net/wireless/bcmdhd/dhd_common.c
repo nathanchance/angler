@@ -1506,7 +1506,7 @@ int wl_host_event_get_data(void *pktdata, uint pktlen, bcm_event_msg_u_t *evu)
 	int ret;
 
 	ret = is_wlc_event_frame(pktdata, pktlen, 0, evu);
-	if (ret != BCME_OK) {
+	if (ret != BCME_OK && ret != -30) {
 		DHD_ERROR(("%s: Invalid event frame, err = %d\n",
 			__FUNCTION__, ret));
 	}
