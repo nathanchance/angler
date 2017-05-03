@@ -2733,6 +2733,8 @@ static int binder_thread_read(struct binder_proc *proc,
 		ptr += sizeof(uint32_t);
 	}
 
+	thread->looper &= ~BINDER_LOOPER_STATE_NEED_RETURN;
+
 retry:
 	wait_for_proc_work = thread->transaction_stack == NULL &&
 				list_empty(&thread->todo);
@@ -3105,7 +3107,6 @@ static struct binder_thread *binder_get_thread(struct binder_proc *proc)
 		INIT_LIST_HEAD(&thread->todo);
 		rb_link_node(&thread->rb_node, parent, p);
 		rb_insert_color(&thread->rb_node, &proc->threads);
-		thread->looper |= BINDER_LOOPER_STATE_NEED_RETURN;
 		thread->return_error = BR_OK;
 		thread->return_error2 = BR_OK;
 	}
@@ -3163,10 +3164,12 @@ static unsigned int binder_poll(struct file *filp,
 	binder_lock(__func__);
 
 	thread = binder_get_thread(proc);
-	if (thread)
+	if (thread) {
+		thread->looper &= ~BINDER_LOOPER_STATE_NEED_RETURN;
 		wait_for_proc_work = thread->transaction_stack == NULL &&
 				     list_empty(&thread->todo) &&
 				     thread->return_error == BR_OK;
+	}
 
 	binder_unlock(__func__);
 
@@ -3321,8 +3324,6 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	}
 	ret = 0;
 err:
-	if (thread)
-		thread->looper &= ~BINDER_LOOPER_STATE_NEED_RETURN;
 	binder_unlock(__func__);
 	wait_event_interruptible(binder_user_error_wait, binder_stop_on_user_error < 2);
 	if (ret && ret != -ERESTARTSYS)
