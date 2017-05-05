@@ -2791,7 +2791,7 @@ static ssize_t dynamic_dsitiming_sysfs_wta(struct device *dev,
 	}
 
 	if (bitclk == pdata->panel_info.clk_rate) {
-		pr_err("%s: dsi bit clk  is already %d\n",
+		pr_debug("%s: dsi bit clk  is already %d\n",
 			__func__, bitclk);
 		return count;
 	}
