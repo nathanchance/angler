@@ -2780,7 +2780,7 @@ static ssize_t dynamic_dsitiming_sysfs_wta(struct device *dev,
 	}
 
 	if (!mdp5_data->ctl || !mdss_mdp_ctl_is_power_on(mdp5_data->ctl)) {
-		pr_err_ratelimited("%s: no ctl or ctl is off\n",__func__);
+		pr_debug_ratelimited("%s: no ctl or ctl is off\n",__func__);
 		return -ENODEV;
 	}
 
