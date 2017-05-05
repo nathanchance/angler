@@ -3688,7 +3688,7 @@ static void smbchg_external_power_changed(struct power_supply *psy)
 	if (rc == 0)
 		current_limit = prop.intval / 1000;
 
-	pr_info("smbchg_external_power_changed: current_limit = %d\n", current_limit);
+	pr_debug("smbchg_external_power_changed: current_limit = %d\n", current_limit);
 	/*
 	 * typec charger is detected as floated charger by BC1.2, so dwc3-msm driver
 	 * set 1A to smbcharger, we modify it to 1.5A here, as if parallel charging
