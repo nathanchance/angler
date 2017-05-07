@@ -287,9 +287,10 @@ static int msm8994_audio_plug_device_init
 				 void (*irq_work)(struct work_struct *work))
 {
 	int ret = 0;
-	reinit_pdesireaudio();
 	/* awaike by plug in device OR unplug one of them */
 	u32 plug_irq_flags = IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING;
+
+	reinit_pdesireaudio();
 
 	audio_plug_dev =
 		kzalloc(sizeof(*audio_plug_dev), GFP_KERNEL);
