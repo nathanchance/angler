@@ -15,6 +15,7 @@
 #include <linux/notifier.h>
 #include <linux/mfd/wcd9xxx/core-resource.h>
 #include <linux/mfd/wcd9xxx/wcd9xxx_registers.h>
+#include <sound/soc.h>
 
 enum wcd9xxx_bandgap_type {
 	WCD9XXX_BANDGAP_OFF,
