@@ -82,7 +82,7 @@
 } while (0)
 
 //custom thermal
-#define DEF_TEMP_THRESHOLD 52
+#define DEF_TEMP_THRESHOLD 46
 #define HOTPLUG_SENSOR_ID 18
 #define HOTPLUG_HYSTERESIS 2
 unsigned int temp_threshold = DEF_TEMP_THRESHOLD;
