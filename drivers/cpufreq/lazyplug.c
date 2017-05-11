@@ -457,14 +457,16 @@ static int state_notifier_call(struct notifier_block *this,
 static unsigned int Lnr_run_profile_sel = 0;
 static unsigned int Ltouch_boost_active = true;
 static bool Lprevious_state = false;
-void lazyplug_enter_lazy(bool enter)
+void lazyplug_enter_lazy(bool enter, bool video)
 {
 	mutex_lock(&lazymode_mutex);
 	if (enter && !Lprevious_state) {
-		pr_info("lazyplug: entering lazy mode\n");
 		Lnr_run_profile_sel = nr_run_profile_sel;
 		Ltouch_boost_active = touch_boost_active;
-		nr_run_profile_sel = 6; /* lazy profile */
+		// if called from vidc, use conservative profile; otherwise use lazy
+		nr_run_profile_sel = (video ? 2 : 6);
+		pr_info("lazyplug: entering lazy mode with profile %d\n",
+				nr_run_profile_sel);
 		touch_boost_active = false;
 		Lprevious_state = true;
 	} else if (!enter && Lprevious_state) {

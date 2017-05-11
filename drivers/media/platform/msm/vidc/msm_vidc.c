@@ -25,7 +25,7 @@
 
 #define MAX_EVENTS 30
 
-extern void lazyplug_enter_lazy(bool enter);
+extern void lazyplug_enter_lazy(bool enter, bool video);
 
 static int get_poll_flags(void *instance)
 {
@@ -1341,7 +1341,7 @@ void *msm_vidc_open(int core_id, int session_type)
 
 	setup_event_queue(inst, &core->vdev[session_type].vdev);
 
-	lazyplug_enter_lazy(true);
+	lazyplug_enter_lazy(true, true);
 
 	return inst;
 fail_init:
@@ -1471,7 +1471,7 @@ int msm_vidc_close(void *instance)
 			VIDC_MSG_PRIO2STRING(VIDC_INFO), inst);
 	kfree(inst);
 
-	lazyplug_enter_lazy(false);
+	lazyplug_enter_lazy(false, true);
 
 	return 0;
 }

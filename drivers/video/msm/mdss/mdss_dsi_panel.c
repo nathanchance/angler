@@ -33,7 +33,7 @@
 
 DEFINE_LED_TRIGGER(bl_led_trigger);
 
-extern void lazyplug_enter_lazy(bool enter);
+extern void lazyplug_enter_lazy(bool enter, bool video);
 
 bool display_on = true;
 
@@ -715,7 +715,7 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 	mdss_dsi_panel_apply_display_setting(pdata, 0);
 
 	display_on = true;
-	lazyplug_enter_lazy(false);
+	lazyplug_enter_lazy(false, false);
 
 #ifdef CONFIG_POWERSUSPEND
 	set_power_suspend_state_panel_hook(POWER_SUSPEND_INACTIVE);
@@ -778,7 +778,7 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 		mdss_dsi_panel_cmds_send(ctrl, &ctrl->off_cmds);
 
 	display_on = false;
-	lazyplug_enter_lazy(true);
+	lazyplug_enter_lazy(true, false);
 
 
 #ifdef CONFIG_POWERSUSPEND
