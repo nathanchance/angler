@@ -176,6 +176,11 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 	new_value = 0;
 #endif
 
+	if (new_value)
+		pr_info_ratelimited("Setting SELinux to enforcing\n");
+	else
+		pr_info_ratelimited("Setting SELinux to permissive\n");
+
 	if (new_value != selinux_enforcing) {
 		length = task_has_security(current, SECURITY__SETENFORCE);
 		if (length)
