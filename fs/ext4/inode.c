@@ -3260,9 +3260,6 @@ static ssize_t ext4_ext_direct_IO(int rw, struct kiocb *iocb,
 		get_block_func = ext4_get_block_write;
 		dio_flags = DIO_LOCKING;
 	}
-#ifdef CONFIG_EXT4_FS_ENCRYPTION
-	BUG_ON(ext4_encrypted_inode(inode) && S_ISREG(inode->i_mode));
-#endif
 	ret = __blockdev_direct_IO(rw, iocb, inode,
 				   inode->i_sb->s_bdev, iov,
 				   offset, nr_segs,
