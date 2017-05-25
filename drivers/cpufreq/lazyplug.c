@@ -459,6 +459,9 @@ static unsigned int Ltouch_boost_active = true;
 static bool Lprevious_state = false;
 void lazyplug_enter_lazy(bool enter, bool video)
 {
+	if (!lazyplug_active)
+		return;
+
 	mutex_lock(&lazymode_mutex);
 	if (enter && !Lprevious_state) {
 		Lnr_run_profile_sel = nr_run_profile_sel;
