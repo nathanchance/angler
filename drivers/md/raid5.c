@@ -1701,7 +1701,8 @@ static int resize_stripes(struct r5conf *conf, int newsize)
 
 	conf->slab_cache = sc;
 	conf->active_name = 1-conf->active_name;
-	conf->pool_size = newsize;
+	if (!err)
+		conf->pool_size = newsize;
 	return err;
 }
 
@@ -5657,8 +5658,8 @@ static int run(struct mddev *mddev)
 		}
 
 		if (discard_supported &&
-		   mddev->queue->limits.max_discard_sectors >= stripe &&
-		   mddev->queue->limits.discard_granularity >= stripe)
+		    mddev->queue->limits.max_discard_sectors >= (stripe >> 9) &&
+		    mddev->queue->limits.discard_granularity >= stripe)
 			queue_flag_set_unlocked(QUEUE_FLAG_DISCARD,
 						mddev->queue);
 		else

@@ -359,6 +359,7 @@ static void ip6gre_tunnel_uninit(struct net_device *dev)
 	struct ip6gre_net *ign = net_generic(net, ip6gre_net_id);
 
 	ip6gre_tunnel_unlink(ign, netdev_priv(dev));
+	ip6_tnl_dst_reset(netdev_priv(dev));
 	dev_put(dev);
 }
 
@@ -889,7 +890,6 @@ static int ip6gre_xmit_other(struct sk_buff *skb, struct net_device *dev)
 		encap_limit = t->parms.encap_limit;
 
 	memcpy(&fl6, &t->fl.u.ip6, sizeof(fl6));
-	fl6.flowi6_proto = skb->protocol;
 
 	err = ip6gre_xmit2(skb, dev, 0, &fl6, encap_limit, &mtu);
 
@@ -1540,13 +1540,11 @@ static int ip6gre_changelink(struct net_device *dev, struct nlattr *tb[],
 			return -EEXIST;
 	} else {
 		t = nt;
-
-		ip6gre_tunnel_unlink(ign, t);
-		ip6gre_tnl_change(t, &p, !tb[IFLA_MTU]);
-		ip6gre_tunnel_link(ign, t);
-		netdev_state_change(dev);
 	}
 
+	ip6gre_tunnel_unlink(ign, t);
+	ip6gre_tnl_change(t, &p, !tb[IFLA_MTU]);
+	ip6gre_tunnel_link(ign, t);
 	return 0;
 }
 

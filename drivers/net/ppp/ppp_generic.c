@@ -716,10 +716,8 @@ static long ppp_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			val &= 0xffff;
 		}
 		vj = slhc_init(val2+1, val+1);
-		if (!vj) {
-			netdev_err(ppp->dev,
-				   "PPP: no memory (VJ compressor)\n");
-			err = -ENOMEM;
+		if (IS_ERR(vj)) {
+			err = PTR_ERR(vj);
 			break;
 		}
 		ppp_lock(ppp);
@@ -2927,6 +2925,9 @@ ppp_disconnect_channel(struct channel *pch)
  */
 static void ppp_destroy_channel(struct channel *pch)
 {
+	put_net(pch->chan_net);
+	pch->chan_net = NULL;
+
 	atomic_dec(&channel_count);
 
 	if (!pch->file.dead) {
