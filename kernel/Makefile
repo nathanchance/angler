@@ -159,10 +159,6 @@ X509_CERTIFICATES-$(CONFIG_MODULE_SIG) += signing_key.x509
 X509_CERTIFICATES := $(sort $(foreach CERT,$(X509_CERTIFICATES-y), \
 				$(or $(realpath $(CERT)),$(CERT))))
 
-ifeq ($(X509_CERTIFICATES),)
-$(warning *** No X.509 certificates found ***)
-endif
-
 ifneq ($(wildcard $(obj)/.x509.list),)
 ifneq ($(shell cat $(obj)/.x509.list),$(X509_CERTIFICATES))
 $(info X.509 certificate list changed)
