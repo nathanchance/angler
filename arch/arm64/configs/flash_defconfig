@@ -4,7 +4,7 @@
 #             #
 ###############
 
-CONFIG_LOCALVERSION="-flash-angler-$( date +%Y%m%d )"
+CONFIG_LOCALVERSION="-Flash-Angler-v0.1"
 # CONFIG_LOCALVERSION_AUTO is not set
 # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
 CONFIG_FB_MSM_MDSS_HDMI_PANEL=y
