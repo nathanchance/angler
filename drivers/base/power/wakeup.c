@@ -21,23 +21,23 @@
 
 #include "power.h"
 
-static bool enable_si_ws = true;
+static bool enable_si_ws = false;
 module_param(enable_si_ws, bool, 0644);
-static bool enable_msm_hsic_ws = true;
+static bool enable_msm_hsic_ws = false;
 module_param(enable_msm_hsic_ws, bool, 0644);
-static bool enable_wlan_rx_wake_ws = true;
+static bool enable_wlan_rx_wake_ws = false;
 module_param(enable_wlan_rx_wake_ws, bool, 0644);
-static bool enable_wlan_ctrl_wake_ws = true;
+static bool enable_wlan_ctrl_wake_ws = false;
 module_param(enable_wlan_ctrl_wake_ws, bool, 0644);
-static bool enable_wlan_wake_ws = true;
+static bool enable_wlan_wake_ws = false;
 module_param(enable_wlan_wake_ws, bool, 0644);
 static bool enable_bluedroid_timer_ws = true;
 module_param(enable_bluedroid_timer_ws, bool, 0644);
-static bool enable_ipa_ws = true;
+static bool enable_ipa_ws = false;
 module_param(enable_ipa_ws, bool, 0644);
-static bool enable_timerfd_ws = true;
+static bool enable_timerfd_ws = false;
 module_param(enable_timerfd_ws, bool, 0644);
-static bool enable_netlink_ws = true;
+static bool enable_netlink_ws = false;
 module_param(enable_netlink_ws, bool, 0644);
 
 /*
