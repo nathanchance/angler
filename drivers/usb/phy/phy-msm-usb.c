@@ -4929,10 +4929,10 @@ static ssize_t dpdm_pulldown_enable_store(struct device *dev,
 	struct msm_otg *motg = the_msm_otg;
 	struct msm_otg_platform_data *pdata = motg->pdata;
 
-	if (!strnicmp(buf, "enable", 6)) {
+	if (!strncasecmp(buf, "enable", 6)) {
 		pdata->dpdm_pulldown_added = true;
 		return size;
-	} else if (!strnicmp(buf, "disable", 7)) {
+	} else if (!strncasecmp(buf, "disable", 7)) {
 		pdata->dpdm_pulldown_added = false;
 		return size;
 	}

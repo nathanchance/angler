@@ -2684,11 +2684,11 @@ static ssize_t adc_enable_store(struct device *dev,
 	if (!mdwc)
 		return -EINVAL;
 
-	if (!strnicmp(buf, "enable", 6)) {
+	if (!strncasecmp(buf, "enable", 6)) {
 		if (!mdwc->id_adc_detect)
 			dwc3_init_adc_work(&mdwc->init_adc_work.work);
 		return size;
-	} else if (!strnicmp(buf, "disable", 7)) {
+	} else if (!strncasecmp(buf, "disable", 7)) {
 		qpnp_adc_tm_usbid_end(mdwc->adc_tm_dev);
 		mdwc->id_adc_detect = false;
 		return size;
