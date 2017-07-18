@@ -266,7 +266,7 @@ static struct lmh_mon_sensor_data *lmh_match_sensor_name(char *sensor_name)
 	struct lmh_mon_sensor_data *lmh_sensor = NULL;
 
 	list_for_each_entry(lmh_sensor, &lmh_sensor_list, list_ptr) {
-		if (!strnicmp(lmh_sensor->sensor_name, sensor_name,
+		if (!strncasecmp(lmh_sensor->sensor_name, sensor_name,
 			LMH_NAME_MAX))
 			return lmh_sensor;
 	}
@@ -633,7 +633,7 @@ static struct lmh_device_data *lmh_match_device_name(char *device_name)
 	struct lmh_device_data *lmh_device = NULL;
 
 	list_for_each_entry(lmh_device, &lmh_device_list, list_ptr) {
-		if (!strnicmp(lmh_device->device_name, device_name,
+		if (!strncasecmp(lmh_device->device_name, device_name,
 			LMH_NAME_MAX))
 			return lmh_device;
 	}
