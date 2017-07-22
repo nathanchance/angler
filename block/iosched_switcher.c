@@ -20,7 +20,7 @@
 #include <linux/state_notifier.h>
 
 #define NOOP_IOSCHED "noop"
-#define RESTORE_DELAY_MS (10000)
+#define RESTORE_DELAY_MS (5000)
 
 struct req_queue_data {
 	struct list_head list;
@@ -80,7 +80,8 @@ static int state_notifier_callback(struct notifier_block *this,
 			 * the state notifier chain call in case weird things can happen
 			 * when switching elevators while the screen is off.
 			 */
-			cancel_delayed_work_sync(&restore_prev);
+			if (delayed_work_pending(&restore_prev))
+				cancel_delayed_work_sync(&restore_prev);
 			change_all_elevators(&req_queues.list, true);
 			break;
 		default:
