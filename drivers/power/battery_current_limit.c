@@ -211,7 +211,7 @@ static void bcl_update_online_mask(void)
 }
 
 #ifdef CONFIG_SMP
-static void __ref bcl_handle_hotplug(struct work_struct *work)
+static void bcl_handle_hotplug(struct work_struct *work)
 {
 	int ret = 0, _cpu = 0;
 
@@ -258,13 +258,13 @@ static void __ref bcl_handle_hotplug(struct work_struct *work)
 	return;
 }
 #else
-static void __ref bcl_handle_hotplug(struct work_struct *work)
+static void bcl_handle_hotplug(struct work_struct *work)
 {
 	return;
 }
 #endif
 
-static int __ref bcl_cpu_ctrl_callback(struct notifier_block *nfb,
+static int bcl_cpu_ctrl_callback(struct notifier_block *nfb,
 	unsigned long action, void *hcpu)
 {
 	uint32_t cpu = (uintptr_t)hcpu;
@@ -294,7 +294,7 @@ static int __ref bcl_cpu_ctrl_callback(struct notifier_block *nfb,
 	return NOTIFY_OK;
 }
 
-static struct notifier_block __refdata bcl_cpu_notifier = {
+static struct notifier_block bcl_cpu_notifier = {
 	.notifier_call = bcl_cpu_ctrl_callback,
 };
 
